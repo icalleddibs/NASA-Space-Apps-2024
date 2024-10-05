@@ -86,6 +86,7 @@ scene.add(moon);
 
 // Create the Sun sphere
 // sun
+// corona simulation found from: https://github.com/bobbyroe/solar-system/blob/main/src/getSun.js
 function getCorona(radiation) {
   const radius = 51;
   const material = new THREE.MeshBasicMaterial({
