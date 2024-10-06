@@ -1,6 +1,6 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // OrbitControls to move around with mouse
-import * as THREE from 'three'
-import {fetchTLEData, parseTLE, getSatellitePosition} from '/sats/satapi';
+import * as THREE from 'three';
+import { fetchTLEData, parseTLE, getSatellitePosition } from './satapi';
 
 // Scene setup
 const scene = new THREE.Scene();
@@ -8,11 +8,11 @@ let satellites = []; // Declare it in a broader scope
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
-camera.position.setZ(300);
+camera.position.setZ(500);
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector('#sats'),
+    canvas: document.querySelector('#sats'),
 });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -22,8 +22,6 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // You can use other types too
 
 // Add background
-// const spaceTexture = new THREE.TextureLoader().load('textures\\back.jpg');
-// scene.background = spaceTexture;
 scene.background = new THREE.Color(0x000000);
 
 // Lighting
@@ -34,7 +32,7 @@ pointLight.shadow.mapSize.width = 2048;  // Adjust for higher quality shadows
 pointLight.shadow.mapSize.height = 2048;
 scene.add(pointLight);
 
-const ambientLight = new THREE.AmbientLight(0xffffff); 
+const ambientLight = new THREE.AmbientLight(0xffffff);
 scene.add(ambientLight);
 
 // Controls
@@ -42,98 +40,132 @@ const controls = new OrbitControls(camera, renderer.domElement);
 
 // Create the earth
 const planetTexture = new THREE.TextureLoader().load(`textures/earth.jpg`);
-// Set Earth's radius and position
 const earth_radius = 100;
 const earth = new THREE.Mesh(
-  new THREE.SphereGeometry(earth_radius, 32, 32),
-  new THREE.MeshStandardMaterial({map: planetTexture})
+    new THREE.SphereGeometry(earth_radius, 32, 32),
+    new THREE.MeshStandardMaterial({ map: planetTexture })
 );
 earth.position.set(0, 0, 0);  // Center Earth at (0, 0, 0)
 // Apply axial tilt (23.5 degrees)
 earth.rotation.x = THREE.MathUtils.degToRad(23.5);
 scene.add(earth);
 
+// Satellite control flags
+let leo = false;
+let meo = false;
+let geo = false;
+let iss = false;
 
+// Satellite storage
+let satelliteMeshes = [];
+let filteredSatellites = [];
 
-// add satellites
-const now = new Date();
+// Add event listeners for checkbox toggles
+document.getElementById('leo-checkbox').addEventListener('change', (event) => {
+    leo = event.target.checked;
+    updateSatelliteVisibility();
+});
+document.getElementById('meo-checkbox').addEventListener('change', (event) => {
+    meo = event.target.checked;
+    updateSatelliteVisibility();
+});
+document.getElementById('geo-checkbox').addEventListener('change', (event) => {
+    geo = event.target.checked;
+    updateSatelliteVisibility();
+});
+document.getElementById('ISS-checkbox').addEventListener('change', (event) => {
+    iss = event.target.checked;
+    updateSatelliteVisibility();
+});
 
-
-function createSatelliteMesh() {
-  const satelliteGeometry = new THREE.SphereGeometry(2, 16, 16); // Create a small sphere for the satellite
-  const satelliteMaterial = new THREE.MeshStandardMaterial({ color: 0xdef2ff }); // Red color for visibility
-  const satelliteMesh = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
-  return satelliteMesh;
+// Function to create satellite meshes
+function createSatelliteMesh(size = 2, color = 0xdef2ff) {
+    const satelliteGeometry = new THREE.SphereGeometry(size, 16, 16); // Create a small sphere for the satellite
+    const satelliteMaterial = new THREE.MeshStandardMaterial({ color: color }); // Color for visibility
+    return new THREE.Mesh(satelliteGeometry, satelliteMaterial);
 }
 
-// Example URL for active satellites TLE data
-// const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle';
-// const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle';
-const tleURL = "celestrak.txt";
-
-let satelliteMeshes = [];
-
+// Fetch TLE data
+const tleURL = "celestrak_active.txt"; // Replace with your TLE source
 fetchTLEData(tleURL).then(tleData => {
     if (tleData) {
-        satellites = parseTLE(tleData);
+        const now = new Date();
+        satellites = parseTLE(tleData, now);
         console.log(satellites); // Output parsed TLE data
-        
-        satellites.forEach(sat => {
-            const satMesh = createSatelliteMesh();
-            // Position the satellite based on the initial TLE data
-            const position = getSatellitePosition(sat.line1, sat.line2, now, earth_radius);
-            satMesh.position.set(position.x, position.y, position.z); // Set position
-            scene.add(satMesh); // Add satellite mesh to the scene
-            satelliteMeshes.push(satMesh); // Store the mesh for later updates
-        });
+        updateSatelliteVisibility();
     }
 });
 
+// Function to update satellite visibility based on current settings
+function updateSatelliteVisibility() {
+  // Clear previous meshes
+  satelliteMeshes.forEach(mesh => scene.remove(mesh));
+  satelliteMeshes = [];
+  filteredSatellites = [];
+
+  const now = new Date();
+  satellites.forEach(satrec => {
+      let satMesh;
+
+      // Check each satellite type and assign color accordingly
+      if (satrec.orbit === "ISS" && iss) {
+          satMesh = createSatelliteMesh(5, 0xFF0000); // Color for ISS (light yellow)
+      } 
+      else if (satrec.orbit === "LEO" && leo) {
+          satMesh = createSatelliteMesh(); // Default color for LEO satellites
+      } 
+      else if (satrec.orbit === "MEO" && meo) {
+          satMesh = createSatelliteMesh(5, 0xd595f8); // Default color for MEO satellites
+      } 
+      else if (satrec.orbit === "GEO" && geo) {
+          satMesh = createSatelliteMesh(5, 0x96d8bc); // Default color for GEO satellites
+      } 
+      else {
+          return; // Skip if not relevant
+      }
+
+      const position = getSatellitePosition(satrec, now, earth_radius);
+      satMesh.position.set(position.x, position.y, position.z); // Set position
+      scene.add(satMesh); // Add satellite mesh to the scene
+      satelliteMeshes.push(satMesh); // Store the mesh for later updates
+      filteredSatellites.push(satrec); // Store the corresponding satellite data
+  });
+}
 
 // Animate the scene
 let sim_time = 0;
-let realtime = true;
-let dt;  // Declare dt here, outside the blocks
-if (realtime==true) {
-    dt = 1/60 *1000;
-}
-else{
-    dt = 600 
-}
-var sat_time = new Date(now.getTime());
+let dt = 1000 / 60; // 60 FPS
+var sat_time = new Date();
 const earthAngularVelocity = 7.2921159e-5;  // radians per second
-function animate(time) {
+
+function animate() {
     // Update time
     sat_time.setMilliseconds(sat_time.getMilliseconds() + dt);
-    // console.log(sat_time);
 
     // Rotate the Earth
-    earth.rotation.y += earthAngularVelocity * dt/1000;
+    earth.rotation.y += earthAngularVelocity * dt / 1000;
 
     // Update satellite positions
     satelliteMeshes.forEach((satMesh, index) => {
-        const sat = satellites[index]; 
-        const position = getSatellitePosition(sat.line1, sat.line2, sat_time, earth_radius);
+        const satrec = filteredSatellites[index];
+        const position = getSatellitePosition(satrec, sat_time, earth_radius);
         satMesh.position.set(position.x, position.y, position.z); // Update position
     });
-
 
     // Continue the animation loop
     controls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
-
 }
-
 
 // Resize handler
 window.addEventListener('resize', () => {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
-  renderer.setSize(width, height);
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
 });
 
 // Start the animation

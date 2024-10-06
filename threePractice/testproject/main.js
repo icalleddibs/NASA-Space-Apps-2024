@@ -566,7 +566,6 @@ window.addEventListener('click', (event) => {
     //console.log("TESTING:", hitboxes);
     //const intersects = raycaster.intersectObjects(hitboxes);
     //const intersects = raycaster.intersectObjects(scene.children); // Check against all scene children
-    console.log("test this", intersects);
     console.log("name of object", intersects[0].object.name);
 
 

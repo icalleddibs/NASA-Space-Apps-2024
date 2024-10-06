@@ -160,7 +160,7 @@ button:hover {
 }
 
 input[type="checkbox"] {
-    accent-color: #4974a0;
+    margin-right: 10px; 
 }
 
 #image-section {

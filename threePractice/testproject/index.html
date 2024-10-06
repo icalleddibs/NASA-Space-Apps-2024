@@ -5,7 +5,6 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orrery WebApp</title>
-    <!-- Link to your custom CSS for the sidebars -->
     <link rel="stylesheet" href="orrery-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
@@ -26,9 +25,8 @@
     <!-- Main Content -->
     <div class="main-content">
         <div id="home-content" class="tab-content homepage-background" style="display: block;">
-        
             <div id="image-section" style="position: relative; text-align: center;">
-                <img src="/images/homepage-bg.png" style="max-width: 100%;"> <!-- Replace with your image path -->
+                <img src="/images/homepage-bg.png" style="max-width: 100%;">
                 
                 <!-- Text Over the Image -->
                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
@@ -56,15 +54,15 @@
                 </div>
             </div>
         </div>
+
         <div id="resources-content" class="tab-content" style="display: none;">
             <h2>Resources</h2>
             <p>Information about resources can be displayed here.</p>
         </div>
 
         <div id="orrery-content" class="tab-content" style="display: none;">
-          <div class="control-panel" id="control-panel"> 
+          <div class="control-panel" id="orrery-control-panel"> <!-- Changed ID for clarity -->
             <div class="control-item">
-
                 <label for="orbit-lines-checkbox" id="orbit-lines" style="font-weight: bold;">Orbit lines</label>
                 <input type="checkbox" id="orbit-lines-checkbox" checked>
             </div>
@@ -86,10 +84,27 @@
         </div>
 
         <div id="earth-content" class="tab-content" style="display: none;">
+            <div class="control-panel" id="earth-control-panel"> <!-- Changed ID for clarity -->
+                <div class="control-item">
+                    <label for="ISS-checkbox" id="ISS" style="font-weight: bold;">Toggle ISS</label>
+                    <input type="checkbox" id="ISS-checkbox" style="accent-color: #FF0000;" >
+                </div>
+                <div class="control-item">
+                    <label for="leo-checkbox" id="LEO" style="font-weight: bold;">Toggle LEOs</label>
+                    <input type="checkbox" id="leo-checkbox" style="accent-color: #a09e9e;">
+                </div>
+                <div class="control-item">
+                    <label for="meo-checkbox" id="MEO" style="font-weight: bold;">Toggle MEOs</label>
+                    <input type="checkbox" id="meo-checkbox" style="accent-color: #d595f8;">
+                </div>
+                <div class="control-item">
+                    <label for="geo-checkbox" id="GEO" style="font-weight: bold;">Toggle GEOs</label>
+                    <input type="checkbox" id="geo-checkbox" style="accent-color: #96d8bc;">
+                </div>
+            </div>
             <canvas id="sats"></canvas>
-                <div id="app"></div>
-                <script type="module" src="/sats/satellites.js"></script>
-            </body>
+            <div id="app"></div>
+            <script type="module" src="/sats/satellites.js"></script>
         </div>
 
         <div id="about-content" class="tab-content" style="display: none;">
@@ -130,13 +145,13 @@
 
             document.getElementById(tab + '-content').style.display = 'block'; // Show the selected tab
 
-// Toggle the homepage background
+            // Toggle the homepage background
+            const body = document.body; // Reference to body
             if (tab === 'home') {
                 body.classList.add('homepage-background');
             } else {
                 body.classList.remove('homepage-background');
             }
-
         }
     </script>
 </body>
