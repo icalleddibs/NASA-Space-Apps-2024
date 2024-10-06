@@ -51,6 +51,7 @@ body {
 
 /* Main content styling */
 .main-content {
+    margin-top: 0px;
     margin-left: 250px;
     padding: 20px;
     width: calc(100% - 250px);
@@ -160,4 +161,61 @@ button:hover {
 
 input[type="checkbox"] {
     accent-color: #4974a0;
+}
+
+#image-section {
+    position: fixed; /* Fixes the image at the top */
+    top: 0; /* Aligns to the top */
+    left: 0; /* Aligns to the left */
+    width: 100vw; /* Full width */
+    height: auto; /* Allows height to be automatic */
+    z-index: -1; /* Ensures it's behind other content */
+    
+    
+}
+
+#image-section img {
+    width: 100%; /* Ensures the image stretches to fill the container */
+    height: auto; /* Maintains the aspect ratio */
+    object-fit: cover; /* Ensures the image covers the container */
+}
+
+#image-section div {
+    position: absolute; /* Positions the text on top of the image */
+    top: 20%; /* Adjust as needed to position the text */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Center text vertically */
+    color: white; /* Text color */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* Adds shadow for better readability */
+    padding: 10px; /* Optional padding */
+}
+
+
+#scrollable-section {
+    padding: 20px; /* Space inside the section */
+    background-color: #654787; /* Light background with some transparency */
+    width: 100%; /* Full width */
+    margin-top: -150px; /* Adjusts it to overlap the purple section */
+    padding: 0px 0px 0px 200px; /* Adds space inside the section */
+    position: relative; /* Ensures proper stacking context */
+    z-index: 1; /* Keep it above the background */
+}
+
+.scrollable-content {
+    flex: 1; /* Allows this section to grow */
+    overflow-y: auto; /* Enables vertical scrolling if needed */
+    padding: 20px;
+    max-height: 60vh; /* Sets a max height for scrolling behavior */
+    color: white; /* Text color */
+}
+
+.mission-statement {
+    text-align: right; /* Aligns text to the right */
+    font-size: 50px; /* Sets font size */
+    padding: 0px 200px; /* Adjust padding for aesthetics */
+    margin-top: -140px; /* Adjusts vertical positioning */
+    color: white; /* Text color */
+    
+    float: right; /* Aligns the box to the right */
+    white-space: nowrap; /* Prevents text from wrapping */
 }
