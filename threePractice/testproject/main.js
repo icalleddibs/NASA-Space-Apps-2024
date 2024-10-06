@@ -18,7 +18,7 @@ const scene = new THREE.Scene();
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.setZ(400);
+camera.position.setZ(600);
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({
@@ -218,22 +218,6 @@ let speed2 = 0.01;     // Speed of Moon's rotation around the Earth
 const rightSidebar = document.getElementById('right-sidebar');
 const closeSidebarButton = document.getElementById('close-sidebar');
 
-// Sidebar content elements
-const planetName = document.getElementById('planet-name');
-const planetBlurb = document.getElementById('planet-blurb'); // Added blurb
-const planetDistance = document.getElementById('planet-distance');
-const planetOrbit = document.getElementById('planet-orbit');
-const planetDay = document.getElementById('planet-day'); // Added day length
-const planetTemperature = document.getElementById('planet-temperature');
-const planetDiameter = document.getElementById('planet-diameter'); // Added diameter
-const planetMoons = document.getElementById('planet-moons');
-const planetType = document.getElementById('planet-type'); // Added type of planet
-const planetRings = document.getElementById('planet-rings'); // Added rings
-const planetGravity = document.getElementById('planet-gravity'); // Added gravity
-const planetAtmosphere = document.getElementById('planet-atmosphere'); // Added atmosphere
-
-
-
 // Add hitboxes to the scene
 celestialBodies.forEach(body => {
     scene.add(body.hitbox); // Add the hitbox to the scene
@@ -405,3 +389,14 @@ window.addEventListener('resize', () => {
 
 // Start the animation
 animate();
+
+// Function to reset camera view
+function resetCameraView(camera, controls) {
+    camera.position.set(0, 0, 600); // Reset camera position
+    controls.target.set(0, 0, 0); // Focus on the center of the solar system
+    controls.update();
+}
+
+document.getElementById('reset-camera').addEventListener('click', function() {
+    resetCameraView(camera, controls);
+});

@@ -12,6 +12,7 @@
 <body>
     <!-- Left Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
+        <img src="logo.webp" style="width: 100%; height: auto;">
         <h2>Orrery WebApp</h2>
         <ul>
             <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
@@ -39,7 +40,7 @@
             <div class="control-item">
 
                 <label for="orbit-lines-checkbox" id="orbit-lines" style="font-weight: bold;">Orbit lines</label>
-                <input type="checkbox" id="orbit-lines-checkbox">
+                <input type="checkbox" id="orbit-lines-checkbox" checked>
             </div>
             <div class="control-item">
                 <label for="planet-names-checkbox" id="planet-names" style="font-weight: bold;">Planet names</label>
@@ -48,6 +49,9 @@
             <div class="control-item">
                  <label for="solar-wind-checkbox" id="solar-wind" style="font-weight: bold;">Solar wind</label>
                 <input type="checkbox" id="solar-wind-checkbox">
+            </div>
+            <div class="control-item">
+              <button id="reset-camera">Reset Camera View</button>
             </div>
           </div>
 
