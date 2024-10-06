@@ -105,6 +105,8 @@ function createPlanetTag(planetName) {
 
 const planetMap = new Map();
 //creating planets
+const tagsMap = new Map(); // Initialize a new map to store planet tags
+
 async function createPlanets(scene) {
     planetDataArray = await loadPlanetData(); // Load the CSV data
     console.log('Loaded planet data:', planetDataArray);
@@ -113,45 +115,31 @@ async function createPlanets(scene) {
         // Generate orbital parameters
         const orbitParams = createOrbitParams(planetData);
         console.log(planetData);
-        console.log(orbitParams);
-        console.log(planetData.Planet);
   
-        
         let pl_radius = 20;
-        if (planetData.Planet == 'Mercury') {
-          pl_radius = 10;
-        } else if (planetData.Planet == 'Venus') {
-          pl_radius = 30;
-        } else if (planetData.Planet == 'Earth') {
-          pl_radius = 30;
-        } else if (planetData.Planet == 'Mars') {
-          pl_radius = 15;
-        } else if (planetData.Planet == 'Jupiter') {
-          pl_radius = 300;
-        } else if (planetData.Planet == 'Saturn') {
-          pl_radius = 282;
-        } else if (planetData.Planet == 'Uranus') {
-          pl_radius = 127;
-        } else if (planetData.Planet == 'Neptune') {
-          pl_radius = 120;
-        } 
-        
-        // Create planet mesh (you may want to adjust sizes for each planet)
+        if (planetData.Planet == 'Mercury') pl_radius = 10;
+        else if (planetData.Planet == 'Venus') pl_radius = 30;
+        else if (planetData.Planet == 'Earth') pl_radius = 30;
+        else if (planetData.Planet == 'Mars') pl_radius = 15;
+        else if (planetData.Planet == 'Jupiter') pl_radius = 300;
+        else if (planetData.Planet == 'Saturn') pl_radius = 282;
+        else if (planetData.Planet == 'Uranus') pl_radius = 127;
+        else if (planetData.Planet == 'Neptune') pl_radius = 120;
+
+        // Create planet mesh
         const planetTexture = new THREE.TextureLoader().load(`textures/${planetData.Planet.toLowerCase()}.jpg`);
         const planet = new THREE.Mesh(
-            new THREE.SphereGeometry(pl_radius, 32, 32), // Adjust size
+            new THREE.SphereGeometry(pl_radius, 32, 32),
             new THREE.MeshStandardMaterial({ map: planetTexture })
         );
-  
+
         planet.name = planetData.Planet;
         planetMap.set(planetData.Planet, planet); // Store the planet in the map
+
         // Parse speed value
-        const speed = parseFloat(planetData[" orb_velocity[km/s]"]) /100 || 1; // Default speed if parsing fails
-          
-        // Store speed in userData for later use
+        const speed = parseFloat(planetData[" orb_velocity[km/s]"]) / 100 || 1; // Default speed if parsing fails
         planet.userData.speed = speed;
-  
-        console.log(planet.name);
+
         // Create orbit for the planet
         const orbit = createOrbit(
             orbitParams.a,
@@ -163,27 +151,27 @@ async function createPlanets(scene) {
         );
         orbits.push(orbit);
   
-        // Add planet and its orbit to the scene
-        scene.add(orbit);
-        scene.add(planet);
-  
-        // Set planet's initial position (can be animated later)
+        // Set planet's initial position
         const { X, Y, Z } = getOrbitPosition(
             orbitParams.a, orbitParams.e, orbitParams.I,
             orbitParams.L, orbitParams.w, orbitParams.omega, 0, orbitParams.T
         );
         planet.position.set(X, Y, Z);
-        //Apply rotation to fix planet
         planet.rotation.x = 90;
-  
-        //add tag to the planet
+
+        // Create tag for the planet and store it in tagsMap
         const tag = createPlanetTag(planet.name);
-          tag.position.set(X, Y + 60, Z); // Offset the tag above the planet
-          planet.userData.tag = tag; // Store the tag in the planet's userData
-          planet.userData.tagVisible = true; // Initialize visibility flag
-          scene.add(tag);
+        tag.position.set(X, Y + 60, Z); // Offset the tag above the planet
+        planet.userData.tag = tag; // Store the tag in userData
+        tagsMap.set(planetData.Planet, tag); // Store the tag in the tagsMap
+        scene.add(tag); // Add the tag to the scene
+
+        // Add planet and orbit to the scene
+        scene.add(orbit);
+        scene.add(planet);
     });
-  }
+}
+
   
 createPlanets(scene);
 
@@ -522,7 +510,7 @@ orbitLinesCheckbox.addEventListener('change', function() {
   }
 });
 
-
+/*
 planetNamesCheckbox.addEventListener('change', function() {
   const isChecked = planetNamesCheckbox.checked; // Store the checkbox state
     planetDataArray.forEach(planetData => {
@@ -534,6 +522,14 @@ planetNamesCheckbox.addEventListener('change', function() {
         }
     });
 
+    console.log(`Planet names ${isChecked ? 'checked' : 'unchecked'}`); // Log based on the checkbox state
+});
+*/
+planetNamesCheckbox.addEventListener('change', function() {
+    const isChecked = planetNamesCheckbox.checked; // Store the checkbox state
+    tagsMap.forEach((tag) => {
+        tag.visible = isChecked; // Toggle label visibility based on checkbox state
+    });
     console.log(`Planet names ${isChecked ? 'checked' : 'unchecked'}`); // Log based on the checkbox state
 });
 
