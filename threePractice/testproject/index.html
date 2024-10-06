@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,27 +8,46 @@
     <!-- Link to your custom CSS for the sidebars -->
     <link rel="stylesheet" href="orrery-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-  </head>
-  <body>
+</head>
+<body>
     <!-- Left Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
         <h2>Orrery WebApp</h2>
         <ul>
             <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
-            <li><a href="#resources" onclick="navigateTo('resources')">Resources</a></li>
             <li><a href="#orrery" onclick="navigateTo('orrery')">Orrery</a></li>
+            <li><a href="#resources" onclick="navigateTo('resources')">Resources</a></li>
             <li><a href="#earth-view" onclick="navigateTo('earth')">Zoomed Earth</a></li>
             <li><a href="#about" onclick="navigateTo('about')">About</a></li>
         </ul>
     </div>
 
-    <!-- Main Content for Orrery (Canvas) -->
+    <!-- Main Content -->
     <div class="main-content">
-        <canvas id="bg"></canvas> <!-- This is your three.js canvas -->
+        <div id="home-content" class="tab-content" style="display: block;">
+            <h2>Welcome to the Home Page</h2>
+            <p>Some introductory content goes here.</p>
+        </div>
+
+        <div id="resources-content" class="tab-content" style="display: none;">
+            <h2>Resources</h2>
+            <p>Information about resources can be displayed here.</p>
+        </div>
+
+        <div id="orrery-content" class="tab-content" style="display: none;">
+            <canvas id="bg"></canvas> <!-- This is your three.js canvas -->
+        </div>
+
+        <div id="earth-content" class="tab-content" style="display: none;">
+            <h2>Zoomed Earth View</h2>
+            <p>Details about the Earth view can be displayed here.</p>
+        </div>
+
+        <div id="about-content" class="tab-content" style="display: none;">
+            <h2>About</h2>
+            <p>Information about the app can be displayed here.</p>
+        </div>
     </div>
-
-    
-
 
     <!-- Right Sidebar for Planet Info -->
     <div class="right-sidebar" id="right-sidebar">
@@ -45,5 +64,15 @@
     <!-- Link to external JavaScript -->
     <script type="module" src="/main.js"></script> <!-- This loads your existing three.js logic -->
     <script type="module" src="orrery-scripts.js"></script>
-  </body>
+    <script>
+        function navigateTo(tab) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(t => {
+                t.style.display = 'none'; // Hide all tabs
+            });
+
+            document.getElementById(tab + '-content').style.display = 'block'; // Show the selected tab
+        }
+    </script>
+</body>
 </html>

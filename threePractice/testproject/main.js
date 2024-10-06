@@ -6,7 +6,7 @@ const scene = new THREE.Scene();
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.setZ(500);
+camera.position.setZ(400);
 
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({
@@ -131,19 +131,19 @@ Array(300).fill().forEach(addStar);
 
 // Create hitboxes for Sun, Earth, and Moon using cube geometries
 const sunHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(100, 100, 100),  // Adjust size as needed
+    new THREE.BoxGeometry(120, 120, 120),  // Adjust size as needed
     new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 }) // Red for visibility
 );
 scene.add(sunHitbox);
 
 const earthHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(40, 40, 40),  // Adjust size as needed
+    new THREE.BoxGeometry(60, 60, 60),  // Adjust size as needed
     new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 }) // Green for visibility
 );
 scene.add(earthHitbox);
 
 const moonHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(10, 10, 10),  // Adjust size as needed
+    new THREE.BoxGeometry(30, 30, 30),  // Adjust size as needed
     new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 }) // Blue for visibility
 );
 scene.add(moonHitbox);
@@ -180,8 +180,8 @@ let orbitRadius = 300; // Distance from the Sun to Earth
 let orbitRadius2 = 50; // Distance from Earth to Moon
 let angle = 0;         // Earth rotation angle
 let angle2 = 0;        // Moon rotation angle
-let speed = 0.01;      // Speed of Earth's rotation around the Sun
-let speed2 = 0.05;     // Speed of Moon's rotation around the Earth
+let speed = 0.001;      // Speed of Earth's rotation around the Sun
+let speed2 = 0.01;     // Speed of Moon's rotation around the Earth
 
 // Sidebar and planet info elements
 const rightSidebar = document.getElementById('right-sidebar');
@@ -194,7 +194,7 @@ const planetOrbit = document.getElementById('planet-orbit');
 const planetTemperature = document.getElementById('planet-temperature');
 const planetMoons = document.getElementById('planet-moons');
 
-// Celestial bodies information
+// Celestial bodies information with hitboxes
 const celestialBodies = [
     {
         name: "Sun",
@@ -202,7 +202,8 @@ const celestialBodies = [
         orbitalPeriod: 0,
         temperature: 5505,
         moons: 0,
-        mesh: sun
+        mesh: sun,
+        hitbox: sunHitbox
     },
     {
         name: "Earth",
@@ -210,7 +211,8 @@ const celestialBodies = [
         orbitalPeriod: 365,
         temperature: 15,
         moons: 1,
-        mesh: earth
+        mesh: earth,
+        hitbox: earthHitbox
     },
     {
         name: "Moon",
@@ -218,9 +220,16 @@ const celestialBodies = [
         orbitalPeriod: 27,
         temperature: -20,
         moons: 0,
-        mesh: moon
+        mesh: moon,
+        hitbox: moonHitbox
     }
 ];
+
+// Add hitboxes to the scene
+celestialBodies.forEach(body => {
+    scene.add(body.hitbox); // Add the hitbox to the scene
+});
+
 
 // Function to open the right sidebar
 function openSidebar() {
@@ -248,21 +257,29 @@ function updateSidebar(body) {
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-// Detect mouse clicks on celestial bodies
+// Raycasting logic
 window.addEventListener('click', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(celestialBodies.map(body => body.mesh));
+
+    // Create an array of hitboxes for intersection
+    const hitboxes = celestialBodies.map(body => body.hitbox);
+    
+    const intersects = raycaster.intersectObjects(hitboxes); // Check against the hitboxes
 
     if (intersects.length > 0) {
-        const clickedBody = celestialBodies.find(body => body.mesh === intersects[0].object);
+        const clickedHitbox = intersects[0].object; // Get the clicked hitbox
+
+        // Find the corresponding celestial body based on the hitbox
+        const clickedBody = celestialBodies.find(body => body.hitbox === clickedHitbox);
         if (clickedBody) {
-            updateSidebar(clickedBody);  
+            updateSidebar(clickedBody);  // Show sidebar with clicked body's info
         }
     }
 });
+
 
 // Sync hitboxes with celestial bodies
 function syncHitboxes() {
