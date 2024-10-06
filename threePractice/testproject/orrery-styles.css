@@ -212,7 +212,7 @@ input[type="checkbox"] {
 
 .mission-statement {
     text-align: right; /* Aligns text to the right */
-    font-size: 50px; /* Sets font size */
+    font-size: 30px; /* Sets font size */
     padding: 0px 450px; /* Adjust padding for aesthetics */
     margin-top: -140px; /* Adjusts vertical positioning */
     color: white; /* Text color */
