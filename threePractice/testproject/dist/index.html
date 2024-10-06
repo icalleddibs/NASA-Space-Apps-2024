@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orrery WebApp</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-CJV90UHO.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-ByQpVkjp.css">
+</head>
+<body>
+    <!-- Left Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <img src="/assets/logo-BUTXRxtM.png" style="width: 100%; height: auto;">
+        <h2>Orrery WebApp</h2>
+        <ul>
+            <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
+            <li><a href="#orrery" onclick="navigateTo('orrery')">Orrery</a></li>
+            <li><a href="#resources" onclick="navigateTo('resources')">Resources</a></li>
+            <li><a href="#earth-view" onclick="navigateTo('earth')">Zoomed Earth</a></li>
+            <li><a href="#about" onclick="navigateTo('about')">About</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="home-content" class="tab-content homepage-background" style="display: block;">
+            <div id="image-section" style="position: relative; text-align: center;">
+                <img src="/assets/homepage-bg-CPCdiKZ7.png" style="max-width: 100%;">
+                
+                <!-- Text Over the Image -->
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                    <h1 style="font-size: 100px;">NAME OF PRODUCT</h1>
+                    <p style="font-size: 30px;">This is some tagline or description.</p>
+                </div>
+            </div>
+            
+            <!-- New Scrollable Section -->
+            <div id="scrollable-section">
+                <div class="mission-statement" style="margin-left: 20px;">
+                    <h2>Mission Statement</h2>
+                </div>
+                <div class="scrollable-content">
+                    <p>This section is below the homepage content. You can add more information, images, or anything else you want.</p>
+                    <p>More text to make this section longer. This will demonstrate scrolling behavior when the content exceeds the viewport height.</p>
+                    <p>Keep adding content here to create a scrollable effect!</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="resources-content" class="tab-content" style="display: none;">
+            <h2>Resources</h2>
+            <p>Information about resources can be displayed here.</p>
+        </div>
+
+        <div id="orrery-content" class="tab-content" style="display: none;">
+          <div class="control-panel" id="orrery-control-panel"> <!-- Changed ID for clarity -->
+            <div class="control-item">
+                <label for="orbit-lines-checkbox" id="orbit-lines" style="font-weight: bold;">Orbit lines</label>
+                <input type="checkbox" id="orbit-lines-checkbox" checked>
+            </div>
+            <div class="control-item">
+                <label for="planet-names-checkbox" id="planet-names" style="font-weight: bold;">Planet names</label>
+                <input type="checkbox" id="planet-names-checkbox" checked>
+            </div>
+            <div class="control-item">
+                 <label for="solar-wind-checkbox" id="solar-wind" style="font-weight: bold;">Solar wind</label>
+                <input type="checkbox" id="solar-wind-checkbox">
+            </div>
+            <div class="control-item">
+              <button id="reset-camera">Reset Camera View</button>
+            </div>
+          </div>
+
+          <canvas id="bg"></canvas> <!-- This is your three.js canvas -->
+            
+        </div>
+
+        <div id="earth-content" class="tab-content" style="display: none;">
+            <div class="control-panel" id="earth-control-panel"> <!-- Changed ID for clarity -->
+                <div class="control-item">
+                    <label for="ISS-checkbox" id="ISS" style="font-weight: bold;">Toggle ISS</label>
+                    <input type="checkbox" id="ISS-checkbox" style="accent-color: #FF0000;" >
+                </div>
+                <div class="control-item">
+                    <label for="leo-checkbox" id="LEO" style="font-weight: bold;">Toggle LEOs</label>
+                    <input type="checkbox" id="leo-checkbox" style="accent-color: #a09e9e;">
+                </div>
+                <div class="control-item">
+                    <label for="meo-checkbox" id="MEO" style="font-weight: bold;">Toggle MEOs</label>
+                    <input type="checkbox" id="meo-checkbox" style="accent-color: #d595f8;">
+                </div>
+                <div class="control-item">
+                    <label for="geo-checkbox" id="GEO" style="font-weight: bold;">Toggle GEOs</label>
+                    <input type="checkbox" id="geo-checkbox" style="accent-color: #96d8bc;">
+                </div>
+            </div>
+            <canvas id="sats"></canvas>
+            <div id="app"></div>
+        </div>
+
+        <div id="about-content" class="tab-content" style="display: none;">
+            <h2>About</h2>
+            <p>Information about the app can be displayed here.</p>
+        </div>
+    </div>
+
+    <!-- Right Sidebar for Planet Info -->
+    <div class="right-sidebar" id="right-sidebar">
+        <div class="sidebar-content">
+            <h2 id="planet-name">Planet Info</h2>
+            <p id="planet-blurb"></p>
+            <p id="planet-distance"><strong>Distance from Sun:</strong> <span id="distance-value"></span></p>
+            <p id="planet-orbit"><strong>Orbital Period:</strong> <span id="orbit-value"></span></p>
+            <p id="day-length"><strong>Day Length:</strong> <span id="day-value"></span></p>
+            <p id="planet-temperature"><strong>Average Temperature:</strong> <span id="temperature-value"></span></p>
+            <p id="planet-moons"><strong>Number of Moons:</strong> <span id="moons-value"></span></p>
+            <p id="planet-diameter"><strong>Diameter:</strong> <span id="diameter-value"></span></p>
+            <p id="planet-mass"><strong>Mass:</strong> <span id="mass-value"></span></p>
+            <p id="planet-type"><strong>Type:</strong> <span id="type-value"></span></p>
+            <p id="planet-rings"><strong>Ring System:</strong> <span id="rings-value"></span></p>
+            <p id="planet-gravity"><strong>Gravity:</strong> <span id="gravity-value"></span></p>
+            <p id="planet-atmosphere"><strong>Atmosphere:</strong> <span id="atmosphere-value"></span></p>
+            <button id="close-sidebar">Close</button>
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript --> <!-- This loads your existing three.js logic -->
+    <script>
+        function navigateTo(tab) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(t => {
+                t.style.display = 'none'; // Hide all tabs
+            });
+
+            document.getElementById(tab + '-content').style.display = 'block'; // Show the selected tab
+
+            // Toggle the homepage background
+            const body = document.body; // Reference to body
+            if (tab === 'home') {
+                body.classList.add('homepage-background');
+            } else {
+                body.classList.remove('homepage-background');
+            }
+        }
+    </script>
+</body>
+</html>
