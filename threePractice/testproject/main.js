@@ -23,8 +23,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // You can use other types to
 
 
 // Add background
-const spaceTexture = new THREE.TextureLoader().load('textures\\back.jpg');
-scene.background = spaceTexture;
+//const spaceTexture = new THREE.TextureLoader().load('textures\\back.jpg');
+scene.background = new THREE.Color(0x000000);;
 
 // Lighting
 const pointLight = new THREE.PointLight(0xffffff, 500000);
@@ -40,18 +40,6 @@ scene.add(ambientLight);
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 
-// Stars
-function addStar() {
-  const geometry = new THREE.SphereGeometry(1, 24, 24);
-  const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-  const star = new THREE.Mesh(geometry, material);
-
-  const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(1000));
-
-  star.position.set(x, y, z);
-  scene.add(star);
-}
-Array(300).fill().forEach(addStar);
 
 // Textures
 const moonTexture = new THREE.TextureLoader().load('textures\\moon.jpg');
