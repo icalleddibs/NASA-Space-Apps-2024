@@ -1,6 +1,5 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // OrbitControls to move around with mouse
 import * as THREE from 'three'
-import * as satellite from 'satellite.js';
 import {fetchTLEData, parseTLE, getSatellitePosition} from './satapi';
 
 // Scene setup
@@ -54,15 +53,29 @@ earth.position.set(0, 0, 0);  // Center Earth at (0, 0, 0)
 earth.rotation.x = THREE.MathUtils.degToRad(23.5);
 scene.add(earth);
 
+// //creating sat labels
+// function createSatTag(satName) {
+//   const canvas = document.createElement('canvas');
+//   const context = canvas.getContext('2d');
+//   context.font = '10px Arial';
+//   context.fillStyle = 'white';
+//   context.fillText(satName, 10, 40);
 
+//   const texture = new THREE.CanvasTexture(canvas);
+//   const material = new THREE.SpriteMaterial({ map: texture });
+//   const sprite = new THREE.Sprite(material);
+//   sprite.scale.set(50, 30, 1); // Adjust the size to fit your scene
+
+//   return sprite;
+// }
 
 // add satellites
 const now = new Date();
 
 
-function createSatelliteMesh() {
-  const satelliteGeometry = new THREE.SphereGeometry(2, 16, 16); // Create a small sphere for the satellite
-  const satelliteMaterial = new THREE.MeshStandardMaterial({ color: 0xdef2ff }); // Red color for visibility
+function createSatelliteMesh(size = 2, color=0xdef2ff ) {
+  const satelliteGeometry = new THREE.SphereGeometry(size, 16, 16); // Create a small sphere for the satellite
+  const satelliteMaterial = new THREE.MeshStandardMaterial({ color: color }); // Red color for visibility
   const satelliteMesh = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
   return satelliteMesh;
 }
@@ -70,23 +83,44 @@ function createSatelliteMesh() {
 // Example URL for active satellites TLE data
 // const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle';
 // const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle';
-const tleURL = "celestrak.txt";
+// const tleURL = "celestrak.txt";
+const tleURL = "celestrak_active.txt";
 
 let satelliteMeshes = [];
+let filteredSatellites = [];
+const leo = true;
+const meo = false;
+const geo = false;
+const iss = true;
 
 fetchTLEData(tleURL).then(tleData => {
     if (tleData) {
-        satellites = parseTLE(tleData);
+        satellites = parseTLE(tleData, now);
         console.log(satellites); // Output parsed TLE data
-        
-        satellites.forEach(sat => {
-            const satMesh = createSatelliteMesh();
-            // Position the satellite based on the initial TLE data
-            const position = getSatellitePosition(sat.line1, sat.line2, now, earth_radius);
-            satMesh.position.set(position.x, position.y, position.z); // Set position
-            scene.add(satMesh); // Add satellite mesh to the scene
-            satelliteMeshes.push(satMesh); // Store the mesh for later updates
-        });
+
+        satellites.forEach(satrec => {
+          if ((leo && satrec.orbit === "LEO") || (meo && satrec.orbit === "MEO") ||
+              (geo && satrec.orbit === "GEO")|| (iss && satrec.orbit === "ISS") ) {
+                let satMesh;
+                if (iss && satrec.orbit === "ISS"){
+                  satMesh = createSatelliteMesh(5, 0xfff191);
+                }
+              else{satMesh = createSatelliteMesh();}
+
+              
+              const position = getSatellitePosition(satrec, now, earth_radius);
+              satMesh.position.set(position.x, position.y, position.z); // Set position
+
+              // const tag = createSatTag(satrec.name);
+              // tag.position.set(position.x, position.y + 3, position.z); // Offset the tag above the planet
+              // satrec.tag = tag; // Store the tag in the planet's userData
+              
+              // scene.add(tag);
+              scene.add(satMesh); // Add satellite mesh to the scene
+              satelliteMeshes.push(satMesh); // Store the mesh for later updates
+              filteredSatellites.push(satrec); // Store the corresponding satellite data
+          }
+      });
     }
 });
 
@@ -113,9 +147,16 @@ function animate(time) {
 
     // Update satellite positions
     satelliteMeshes.forEach((satMesh, index) => {
-        const sat = satellites[index]; 
-        const position = getSatellitePosition(sat.line1, sat.line2, sat_time, earth_radius);
+        const satrec = filteredSatellites[index]; 
+        const position = getSatellitePosition(satrec, sat_time, earth_radius);
         satMesh.position.set(position.x, position.y, position.z); // Update position
+        
+        // Update the tag position based on the satellite's position
+        // const tag = satrec.tag;
+        //     if (tag) {
+        //         tag.position.set(position.x, position.y + 3, position.z); // Keep the tag above the planet
+        //         // tag.material.map.needsUpdate = true; // Ensure the texture updates
+        //       }
     });
 
 

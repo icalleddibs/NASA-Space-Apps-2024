@@ -14,17 +14,37 @@ async function fetchTLEData(url) {
     }
 }
 
-function parseTLE(tleData) {
+function parseTLE(tleData, date) {
     const tleLines = tleData.split('\n').filter(line => line.trim() !== '');
     const satellites = [];
 
     for (let i = 0; i < tleLines.length; i += 3) {
-        const satellite = {
+        const sat = {
             name: tleLines[i].trim(),
             line1: tleLines[i + 1],
             line2: tleLines[i + 2],
         };
-        satellites.push(satellite);
+        const satrec = satellite.twoline2satrec(sat.line1, sat.line2, date);
+        satrec.name = sat.name;
+        // console.log(satrec)
+        if (!satrec) {
+            console.error("Failed to create satellite record from TLE:", TLE1, TLE2);
+            return { x: 0, y: 0, z: 0 }; // Handle invalid satellite record
+        }
+        
+        let orbits_per_day = satrec.no*86400/(360); //orbits per day
+        if (orbits_per_day>=13){
+            satrec.orbit = "LEO";}
+        else if (orbits_per_day>2){
+            satrec.orbit = "MEO";}
+        else if (orbits_per_day<=2){
+            satrec.orbit = "GEO";}
+        else{
+            satrec.orbit = "ERROR"}
+        if (satrec.satnum ==25544){
+            satrec.orbit = "ISS";}
+        console.log(satrec.orbit)
+        satellites.push(satrec);
     }
 
     return satellites;
@@ -32,14 +52,7 @@ function parseTLE(tleData) {
 
 
 
-function getSatellitePosition(TLE1, TLE2, date, earthRadius) {
-    const satrec = satellite.twoline2satrec(TLE1, TLE2);
-    // console.log(satrec)
-    if (!satrec) {
-        console.error("Failed to create satellite record from TLE:", TLE1, TLE2);
-        return { x: 0, y: 0, z: 0 }; // Handle invalid satellite record
-    }
-
+function getSatellitePosition(satrec, date, earthRadius) {
     const positionAndVelocity = satellite.propagate(satrec, date);
     // console.log(positionAndVelocity)
     const positionEci = positionAndVelocity.position;
@@ -50,8 +63,6 @@ function getSatellitePosition(TLE1, TLE2, date, earthRadius) {
         x : positionEci.x/(earthRadius/2),
         y : positionEci.y/(earthRadius/2),
         z : positionEci.z/(earthRadius/2),
-
-
     }
 }
 
