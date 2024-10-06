@@ -1,8 +1,11 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // OrbitControls to move around with mouse
+import Papa from 'papaparse';
 import * as THREE from 'three'
 import { ImprovedNoise } from 'https://unpkg.com/three/examples/jsm/math/ImprovedNoise.js';
 
+import { getOrbitPosition, createOrbit, createOrbitParams } from './moveapi.js';
 
+let planetDataArray = [];
 // Scene setup
 const scene = new THREE.Scene();
 
@@ -33,7 +36,6 @@ pointLight.castShadow = true;  // Enable shadow casting for the light
 pointLight.shadow.mapSize.width = 2048;  // Adjust for higher quality shadows
 pointLight.shadow.mapSize.height = 2048;
 scene.add(pointLight);
-
 const ambientLight = new THREE.AmbientLight(0xffffff);
 scene.add(ambientLight);
 
@@ -54,14 +56,78 @@ const uranusTexture = new THREE.TextureLoader().load('textures\\uranus.png');
 const neptuneTexture = new THREE.TextureLoader().load('textures\\neptune.png');
 
 
-// Create the Earth sphere
-const earth = new THREE.Mesh(
-  new THREE.SphereGeometry(20, 32, 32),
-  new THREE.MeshStandardMaterial({ map: earthTexture })
-);
-earth.castShadow = true;  // Enable shadow casting for Earth
-earth.receiveShadow = true;  // Enable Earth to receive shadows
-scene.add(earth);
+//Parse csv file
+async function loadPlanetData() {
+    try {
+      const response = await fetch('https://raw.githubusercontent.com/icalleddibs/NASA-Space-Apps-2024/refs/heads/planets/data/planets.csv');
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      const csvData = await response.text();
+      const parsedData = Papa.parse(csvData, { header: true }).data; // Parses the CSV into an array of objects
+      console.log('Loaded planet data:', planetDataArray);
+      return parsedData; // Return the parsed planet data
+  } catch (error) {
+      console.error('Error fetching or parsing planet data:', error);
+  }
+}
+
+//creating planets
+async function createPlanets(scene) {
+  planetDataArray = await loadPlanetData(); // Load the CSV data
+
+  planetDataArray.forEach(planetData => {
+      // Generate orbital parameters
+      const orbitParams = createOrbitParams(planetData);
+
+      // Create planet mesh (you may want to adjust sizes for each planet)
+      const planetTexture = new THREE.TextureLoader().load(`${planetData.Planet.toLowerCase()}.jpg`);
+      const planet = new THREE.Mesh(
+          new THREE.SphereGeometry(10, 32, 32), // Adjust size
+          new THREE.MeshStandardMaterial({ map: planetTexture })
+      );
+      if (planetData.Planet === 'EM Bary') {
+          planetData.Planet = 'Earth'; // Set the Earth object's name
+      }
+      planet.name = planetData.Planet;
+      // Create orbit for the planet
+      const orbit = createOrbit(
+          orbitParams.a,
+          orbitParams.e,
+          orbitParams.I,
+          orbitParams.w,
+          orbitParams.omega,
+          orbitParams.T
+      );
+
+      // Add planet and its orbit to the scene
+      scene.add(orbit);
+      scene.add(planet);
+
+      // Set planet's initial position (can be animated later)
+      const { X, Y, Z } = getOrbitPosition(
+          orbitParams.a, orbitParams.e, orbitParams.I,
+          orbitParams.L, orbitParams.w, orbitParams.omega, 0, orbitParams.T
+      );
+      planet.position.set(X, Y, Z);
+  });
+}
+
+// Call the createPlanets function when setting up the scene
+createPlanets(scene);
+
+
+function addReferencePlane(scene) {
+  const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
+  const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide, opacity: 0.01, transparent: true });
+  const referencePlane = new THREE.Mesh(planeGeometry, planeMaterial);
+  
+  // Rotate the plane to align it with the "flat" reference (XY plane)
+  referencePlane.rotation.x = Math.PI/2; // Align the plane with the XY plane
+  scene.add(referencePlane);
+}
+addReferencePlane(scene);
+
 
 // Create the Moon sphere
 const moon = new THREE.Mesh(
@@ -71,6 +137,7 @@ const moon = new THREE.Mesh(
 moon.castShadow = true;  // Enable shadow casting for Moon
 moon.receiveShadow = true;  // Enable Moon to receive shadows
 scene.add(moon);
+
 
 // Create the Sun sphere
 // sun
@@ -118,33 +185,53 @@ sun.add(coronaMesh);
 scene.add(sun);
 
 // Orbital parameters
-let orbitRadius = 300;
-let orbitRadius2 = 50;
-let angle = 0;
-let angle2 = 0;
-let speed = 0.01;
-let speed2 = 0.03;
+let emRadius = 50;
+let moonangle = 0;
+let moonspeed = 0.03;
 
 // Animate the scene
+let time = 0;
+let dt = 60 * 60; // 1 hour timestep
+  
 function animate() {
   requestAnimationFrame(animate);
   // Update corona noise effect over time
   const time = performance.now() * 0.001;  // Time variable
   coronaMesh.userData.update(time);
+ 
+    // Update positions of all planets in the scene
+    planetDataArray.forEach(planetData => {
+      const orbitParams = createOrbitParams(planetData);
+      const planet = scene.getObjectByName(planetData.Planet); // Attempt to retrieve the planet
 
-  // Earth orbital motion
-  const earthX = orbitRadius * Math.cos(angle);
-  const earthY = orbitRadius * Math.sin(angle);
-  earth.position.set(earthX, earthY, 0);
+      if (planet) { // Ensure planet exists before updating its position
+          // Update the planet's position at the current time
+          const { X, Y, Z } = getOrbitPosition(
+              orbitParams.a, orbitParams.e, orbitParams.I,
+              orbitParams.L, orbitParams.w, orbitParams.omega, time, orbitParams.T
+          );
+          planet.position.set(X, Y, Z);
+      } else {
+          console.warn(`Planet ${planetData.Planet} not found in the scene.`);
+      }
+  });
   
+
+  // Update time (you can make it move backward/forward based on user input)
+  time += dt;
+
   // Moon orbital motion around Earth
-  const moonX = earthX + orbitRadius2 * Math.cos(angle2);
-  const moonY = earthY + orbitRadius2 * Math.sin(angle2);
-  moon.position.set(moonX, moonY, 0);
-  
-  // Increment angles for orbital motion
-  angle += speed;
-  angle2 += speed2;
+  const earth = scene.getObjectByName('Earth'); // Assuming you named the Earth object
+  if (earth) {
+      const X = earth.position.x;
+      const Y = earth.position.y;
+      moonangle += moonspeed;
+      const moonX = X + emRadius * Math.cos(moonangle);
+      const moonY = Y + emRadius * Math.sin(moonangle);
+      moon.position.set(moonX, moonY, 0);
+  } else {
+      console.warn('Earth not found in the scene.');
+  }
 
   // Rotate the Sun
   sun.rotation.y += 0.001;
