@@ -4,11 +4,46 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <title>Orrery WebApp</title>
+    <!-- Link to your custom CSS for the sidebars -->
+    <link rel="stylesheet" href="orrery-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
   <body>
-<canvas id="bg"></canvas>
-    <div id="app"></div>
-    <script type="module" src="/main.js"></script>
+    <!-- Left Sidebar Navigation -->
+    <div class="sidebar" id="sidebar">
+        <h2>Orrery WebApp</h2>
+        <ul>
+            <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
+            <li><a href="#resources" onclick="navigateTo('resources')">Resources</a></li>
+            <li><a href="#orrery" onclick="navigateTo('orrery')">Orrery</a></li>
+            <li><a href="#earth-view" onclick="navigateTo('earth')">Zoomed Earth</a></li>
+            <li><a href="#about" onclick="navigateTo('about')">About</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content for Orrery (Canvas) -->
+    <div class="main-content">
+        <canvas id="bg"></canvas> <!-- This is your three.js canvas -->
+    </div>
+
+    
+
+
+    <!-- Right Sidebar for Planet Info -->
+    <div class="right-sidebar" id="right-sidebar">
+        <div class="sidebar-content">
+            <h2 id="planet-name">Planet Info</h2>
+            <p id="planet-distance"><strong>Distance from Sun:</strong></p>
+            <p id="planet-orbit"><strong>Orbital Period:</strong></p>
+            <p id="planet-temperature"><strong>Temperature:</strong></p>
+            <p id="planet-moons"><strong>Moons:</strong></p>
+            <button id="close-sidebar">Close</button>
+        </div>
+    </div>
+
+    <!-- Link to external JavaScript -->
+    <script type="module" src="/main.js"></script> <!-- This loads your existing three.js logic -->
+    <script type="module" src="orrery-scripts.js"></script>
   </body>
 </html>
