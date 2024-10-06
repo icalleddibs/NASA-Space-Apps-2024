@@ -10,5 +10,10 @@
   },
   "devDependencies": {
     "vite": "^5.4.8"
+  },
+  "dependencies": {
+    "jsm": "^0.0.1",
+    "papaparse": "^5.4.1",
+    "satellite.js": "^5.0.0"
   }
 }

@@ -1,11 +1,14 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // OrbitControls to move around with mouse
 import * as THREE from 'three';
+import Papa from 'papaparse';
+import { ImprovedNoise } from 'https://unpkg.com/three/examples/jsm/math/ImprovedNoise.js';
 
+import { getOrbitPosition, createOrbit, createOrbitParams } from '/planets/moveapi.js';
 
-let celestialBodies = []; // To store celestial body data
+let celestialBodies = []; // To store celestial pbodydata
 
 // Fetch celestial bodies data
-fetch('celestialBodies.json')
+fetch('/planets/celestialBodies.json')
     .then(response => response.json())
     .then(data => {
         celestialBodies = data; // Store the data in the global variable
@@ -15,9 +18,10 @@ fetch('celestialBodies.json')
 
 // Scene setup
 const scene = new THREE.Scene();
+let sim_time = 0;
 
 // Camera setup
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
 camera.position.setZ(600);
 
 // Renderer setup
@@ -28,19 +32,235 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 // Add background
-const spaceTexture = new THREE.TextureLoader().load('back.jpg');
-scene.background = spaceTexture;
+scene.background = new THREE.Color(0x000000);;
+
+// Enable shadow rendering
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // You can use other types too
 
 // Lighting
-const pointLight = new THREE.PointLight(0xffffff, 200);
+const pointLight = new THREE.PointLight(0xffffff, 500000);
 pointLight.position.set(0, 0, 0);
+pointLight.castShadow = true;  // Enable shadow casting for the light
+pointLight.shadow.mapSize.width = 2048;  // Adjust for higher quality shadows
+pointLight.shadow.mapSize.height = 2048;
 scene.add(pointLight);
-
 const ambientLight = new THREE.AmbientLight(0xffffff);
 scene.add(ambientLight);
 
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);
+
+// Textures
+const moonTexture = new THREE.TextureLoader().load('textures\\moon.jpg');
+const earthTexture = new THREE.TextureLoader().load('textures\\earth.jpg');
+const sunTexture = new THREE.TextureLoader().load('textures\\sun.png');
+const mercuryTexture = new THREE.TextureLoader().load('textures\\mercury.png');
+const venusTexture = new THREE.TextureLoader().load('textures\\venus.png');
+const marsTexture = new THREE.TextureLoader().load('textures\\mars.png');
+const jupiterTexture = new THREE.TextureLoader().load('textures\\jupiter.png');
+const saturnTexture = new THREE.TextureLoader().load('textures\\saturn.png');
+const uranusTexture = new THREE.TextureLoader().load('textures\\uranus.png');
+const neptuneTexture = new THREE.TextureLoader().load('textures\\neptune.png');
+
+
+//Parse csv file
+async function loadPlanetData() {
+    try {
+      //const response = await fetch('/data/planets.csv');
+      const response = await fetch('/planets/planets.csv');
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      const csvData = await response.text();
+      const parsedData = Papa.parse(csvData, { header: true, skipEmptyLines: true }).data; // Parses the CSV into an array of objects
+      console.log(parsedData);
+      return parsedData; // Return the parsed planet data
+  } catch (error) {
+      console.error('Error fetching or parsing planet data:', error);
+  }
+}
+
+// start planets -----------------------------------------------------------------------------------------------
+
+//store main objects:
+let planetDataArray = [];
+let orbits = [];
+
+//create planet labels
+function createPlanetTag(planetName) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = '30px Arial';
+    context.fillStyle = 'white';
+    context.fillText(planetName, 10, 40);
+  
+    const texture = new THREE.CanvasTexture(canvas);
+    const material = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(material);
+    sprite.scale.set(50, 25, 1);
+  
+    return sprite;
+  }
+
+const planetMap = new Map();
+//creating planets
+async function createPlanets(scene) {
+    planetDataArray = await loadPlanetData(); // Load the CSV data
+    console.log('Loaded planet data:', planetDataArray);
+  
+    planetDataArray.forEach(planetData => {
+        // Generate orbital parameters
+        const orbitParams = createOrbitParams(planetData);
+        console.log(planetData);
+        console.log(orbitParams);
+        console.log(planetData.Planet);
+  
+        
+        let pl_radius = 20;
+        if (planetData.Planet == 'Mercury') {
+          pl_radius = 10;
+        } else if (planetData.Planet == 'Venus') {
+          pl_radius = 30;
+        } else if (planetData.Planet == 'Earth') {
+          pl_radius = 30;
+        } else if (planetData.Planet == 'Mars') {
+          pl_radius = 15;
+        } else if (planetData.Planet == 'Jupiter') {
+          pl_radius = 300;
+        } else if (planetData.Planet == 'Saturn') {
+          pl_radius = 282;
+        } else if (planetData.Planet == 'Uranus') {
+          pl_radius = 127;
+        } else if (planetData.Planet == 'Neptune') {
+          pl_radius = 120;
+        } 
+        
+        // Create planet mesh (you may want to adjust sizes for each planet)
+        const planetTexture = new THREE.TextureLoader().load(`textures/${planetData.Planet.toLowerCase()}.jpg`);
+        const planet = new THREE.Mesh(
+            new THREE.SphereGeometry(pl_radius, 32, 32), // Adjust size
+            new THREE.MeshStandardMaterial({ map: planetTexture })
+        );
+  
+        planet.name = planetData.Planet;
+        planetMap.set(planetData.Planet, planet); // Store the planet in the map
+        // Parse speed value
+        const speed = parseFloat(planetData[" orb_velocity[km/s]"]) /100 || 1; // Default speed if parsing fails
+          
+        // Store speed in userData for later use
+        planet.userData.speed = speed;
+  
+        console.log(planet.name);
+        // Create orbit for the planet
+        const orbit = createOrbit(
+            orbitParams.a,
+            orbitParams.e,
+            orbitParams.I,
+            orbitParams.w,
+            orbitParams.omega,
+            orbitParams.T
+        );
+        orbits.push(orbit);
+  
+        // Add planet and its orbit to the scene
+        scene.add(orbit);
+        scene.add(planet);
+  
+        // Set planet's initial position (can be animated later)
+        const { X, Y, Z } = getOrbitPosition(
+            orbitParams.a, orbitParams.e, orbitParams.I, // orbitParams.e instead of 0
+            orbitParams.L, orbitParams.w, orbitParams.omega, 0, orbitParams.T
+        );
+        planet.position.set(X, Y, Z);
+        //Apply rotation to fix planet
+        planet.rotation.x = 90;
+  
+        //add tag to the planet
+        const tag = createPlanetTag(planet.name);
+          tag.position.set(X, Y + 60, Z); // Offset the tag above the planet
+          planet.userData.tag = tag; // Store the tag in the planet's userData
+          
+          scene.add(tag);
+    });
+  }
+  
+createPlanets(scene);
+
+// Create the Moon sphere
+const moon = new THREE.Mesh(
+    new THREE.SphereGeometry(5, 32, 32),
+    new THREE.MeshStandardMaterial({ map: moonTexture })
+);
+moon.castShadow = true;  // Enable shadow casting for Moon
+moon.receiveShadow = true;  // Enable Moon to receive shadows
+scene.add(moon);
+
+// Create the Sun sphere
+// corona simulation found from: https://github.com/bobbyroe/solar-system/blob/main/src/getSun.js
+const sun_radius = 50;
+function getCorona(radiation) {
+    const radius = 51;
+    const material = new THREE.MeshBasicMaterial({
+        color: 0xffbb73,
+        side: THREE.BackSide,
+});
+
+    const geo = new THREE.IcosahedronGeometry(radius, 30);
+    const mesh = new THREE.Mesh(geo, material);
+    const noise = new ImprovedNoise();
+
+    let v3 = new THREE.Vector3();
+    let p = new THREE.Vector3();
+    let pos = geo.attributes.position;
+    pos.usage = THREE.DynamicDrawUsage;
+    const len = pos.count;
+    function update(t) {
+        for (let i = 0; i < len; i += 1) {
+            p.fromBufferAttribute(pos, i).normalize();
+            v3.copy(p).multiplyScalar(30.0);
+            let ns = noise.noise(v3.x + Math.cos(t), v3.y + Math.sin(t), v3.z + t);
+            v3.copy(p)
+                .setLength(radius)
+                .addScaledVector(p, ns * radiation);
+            pos.setXYZ(i, v3.x, v3.y, v3.z);
+        }
+        pos.needsUpdate = true;
+    }
+    mesh.userData.update = update;
+    return mesh;
+}
+
+const sun = new THREE.Mesh(
+    new THREE.SphereGeometry(sun_radius, 40, 40),
+    new THREE.MeshStandardMaterial({emissive: 0xff0000, map: sunTexture })
+  );
+  let radiation = 5
+  const coronaMesh = getCorona(radiation);
+  sun.add(coronaMesh);
+  scene.add(sun);
+  
+  // Orbital parameters
+  let emRadius = 50;
+  let moonangle = 0;
+  let moonspeed = 0.03;
+  
+  // Animate the scene
+  let dt = 60*60; // 1 hour timestep
+
+//animate here
+
+// end planets ---------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+// solar wind ----------------------------------------------------------------------------------------------------------------------
+
+/*
+
 
 // Solar Wind - Fetch Data Functionality
 async function fetchPlasmaData() {
@@ -142,6 +362,16 @@ async function simulateSolarWind() {
     }
     animate(); // Start the animation
 }
+    */
+
+
+// end solar wind ----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
 
 // Stars
 function addStar() {
@@ -157,72 +387,95 @@ function addStar() {
 Array(300).fill().forEach(addStar);
 
 
-// Textures
-const moonTexture = new THREE.TextureLoader().load('moon.jpg');
-const earthTexture = new THREE.TextureLoader().load('earth.jpg');
-const sunTexture = new THREE.TextureLoader().load('sun.png');
-
-// Create the Earth sphere
-const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(20, 32, 32),
-    new THREE.MeshStandardMaterial({ map: earthTexture })
-);
-scene.add(earth);
-
-// Create the Moon sphere
-const moon = new THREE.Mesh(
-    new THREE.SphereGeometry(5, 32, 32),
-    new THREE.MeshStandardMaterial({ map: moonTexture })
-);
-scene.add(moon);
-
-// Create the Sun sphere
-const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(50, 32, 32),
-    new THREE.MeshStandardMaterial({ map: sunTexture })
-);
-scene.add(sun);
-console.log(moon.geometry.parameters.radius);
 
 // Create hitboxes for Sun, Earth, and Moon using cube geometries
 const sunHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(120, 120, 120),  // Adjust size as needed
+    new THREE.BoxGeometry(125, 125, 125),  // Adjust size as needed
     new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5, visible: false}) // Red for visibility
 );
 sunHitbox.name = "Sun";
 scene.add(sunHitbox);
 
+// Mercury Hitbox
+const mercuryHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(50, 50, 50), // Adjust size based on Mercury's defined radius
+    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5, visible: false })
+);
+mercuryHitbox.name = "Mercury";
+scene.add(mercuryHitbox);
+
+// Venus Hitbox
+const venusHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(90, 90, 90), // Adjust size based on Venus's defined radius
+    new THREE.MeshBasicMaterial({ color: 0xffcc00, transparent: true, opacity: 0.5, visible: false })
+);
+venusHitbox.name = "Venus";
+scene.add(venusHitbox);
+
+// Earth Hitbox
 const earthHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(60, 60, 60),  // Adjust size as needed
-    new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5, visible: false }) // Green for visibility
+    new THREE.BoxGeometry(90, 90, 90), // Adjust size based on Earth's defined radius
+    new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5, visible: false })
 );
 earthHitbox.name = "Earth";
 scene.add(earthHitbox);
 
+// Mars Hitbox
+const marsHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(60, 60, 60), // Adjust size based on Mars's defined radius
+    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5, visible: false })
+);
+marsHitbox.name = "Mars";
+scene.add(marsHitbox);
+
+// Jupiter Hitbox
+const jupiterHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(630, 630, 630), // Adjust size based on Jupiter's defined radius
+    new THREE.MeshBasicMaterial({ color: 0x8b4513, transparent: true, opacity: 0.5, visible: false })
+);
+jupiterHitbox.name = "Jupiter";
+scene.add(jupiterHitbox);
+
+// Saturn Hitbox
+const saturnHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(594, 594, 594), // Adjust size based on Saturn's defined radius
+    new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.5, visible: false })
+);
+saturnHitbox.name = "Saturn";
+scene.add(saturnHitbox);
+
+// Uranus Hitbox
+const uranusHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(284, 284, 284), // Adjust size based on Uranus's defined radius
+    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5, visible: false })
+);
+uranusHitbox.name = "Uranus";
+scene.add(uranusHitbox);
+
+// Neptune Hitbox
+const neptuneHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(270, 270, 270), // Adjust size based on Neptune's defined radius
+    new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5, visible: false })
+);
+neptuneHitbox.name = "Neptune";
+scene.add(neptuneHitbox);
+
+// Moon Hitbox (Example for Earth)
 const moonHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(30, 30, 30),  // Adjust size as needed
-    new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5, visible: false }) // Blue for visibility
+    new THREE.BoxGeometry(45, 45, 45), // Adjust size based on the moon's radius
+    new THREE.MeshBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5, visible: false })
 );
 moonHitbox.name = "Moon";
 scene.add(moonHitbox);
-
-// Orbital parameters
-let orbitRadius = 300; // Distance from the Sun to Earth
-let orbitRadius2 = 50; // Distance from Earth to Moon
-let angle = 0;         // Earth rotation angle
-let angle2 = 0;        // Moon rotation angle
-let speed = 0.001;      // Speed of Earth's rotation around the Sun
-let speed2 = 0.01;     // Speed of Moon's rotation around the Earth
 
 // Sidebar and planet info elements
 const rightSidebar = document.getElementById('right-sidebar');
 const closeSidebarButton = document.getElementById('close-sidebar');
 
 // Add hitboxes to the scene
-celestialBodies.forEach(body => {
-    scene.add(body.hitbox); // Add the hitbox to the scene
+celestialBodies.forEach(pbody => {
+    scene.add(pbody.hitbox); // Add the hitbox to the scene
 });
-
 
 // Function to open the right sidebar
 function openSidebar() {
@@ -235,7 +488,6 @@ function closeSidebar() {
 }
 
 closeSidebarButton.addEventListener('click', closeSidebar);
-
 
 // Function to update sidebar with planet info
 function updateSidebar(body) {
@@ -258,6 +510,7 @@ function updateSidebar(body) {
     openSidebar();
     
 }
+/*
 
 // toggle buttons -------------------------------------------------------------------
 
@@ -265,25 +518,33 @@ const orbitLinesCheckbox = document.getElementById('orbit-lines-checkbox');
 const planetNamesCheckbox = document.getElementById('planet-names-checkbox');
 const solarWindCheckbox = document.getElementById('solar-wind-checkbox');
   
+
 orbitLinesCheckbox.addEventListener('change', function() {
   if (orbitLinesCheckbox.checked) {
-      // condition to show orbit lines
+      orbits.forEach(orbit => {
+          orbit.visible = true; 
+      });
       console.log("Orbit lines checked");
-    } else {
-      // condition to hide orbit lines 
+  } else {
+      orbits.forEach(orbit => {
+          orbit.visible = false; 
+      });
       console.log("Orbit lines unchecked");
-    }
-}); 
+  }
+});
+
 
 planetNamesCheckbox.addEventListener('change', function() {
-  if (planetNamesCheckbox.checked) {
-    // condition to show the planet names
-    console.log("Planet names checked");
-  } else {
-    // condition to hide the planet names 
-    console.log("Planet names unchecked");
-  }
-}); 
+  const isChecked = planetNamesCheckbox.checked; // Store the checkbox state
+    planetDataArray.forEach(planetData => {
+        const planet = scene.getObjectByName(planetData.Planet); 
+        if (planet && planet.userData.tag) {
+            planet.userData.tag.visible = isChecked;  // Toggle label visibility based on checkbox state
+        }
+    });
+
+    console.log(`Planet names ${isChecked ? 'checked' : 'unchecked'}`); // Log based on the checkbox state
+});
 
 // solarWindCheckbox.addEventListener('change', function() {
 //   if (solarWindCheckbox.checked) {
@@ -310,6 +571,7 @@ solarWindCheckbox.addEventListener('change', function() {
 });
 
 // toggle buttons -------------------------------------------------------------------
+*/
 
 // Raycaster for detecting clicks
 const raycaster = new THREE.Raycaster();
@@ -323,17 +585,17 @@ window.addEventListener('click', (event) => {
     raycaster.setFromCamera(mouse, camera);
 
     // Use hitboxes for intersection checking
-    const intersects = raycaster.intersectObjects([sunHitbox, earthHitbox, moonHitbox]); // Check against specific hitboxes
+    const intersects = raycaster.intersectObjects([sunHitbox, mercuryHitbox, venusHitbox, earthHitbox, jupiterHitbox, saturnHitbox, uranusHitbox, neptuneHitbox]); // Check against specific hitboxes
     //console.log("TESTING:", hitboxes);
     //const intersects = raycaster.intersectObjects(hitboxes);
     //const intersects = raycaster.intersectObjects(scene.children); // Check against all scene children
-    console.log(intersects);
-    console.log(intersects[0].object.name);
+    console.log("test this", intersects);
+    console.log("name of object", intersects[0].object.name);
 
 
     if (intersects.length > 0) {
         const clickedHitbox = intersects[0].object; // Get the clicked hitbox
-        const clickedBody = celestialBodies.find(body => body.name === clickedHitbox.name);
+        const clickedBody = celestialBodies.find(pbody=> pbody.name === clickedHitbox.name);
         console.log(clickedBody);
         if (clickedBody) {
             updateSidebar(clickedBody);  // Show sidebar with clicked body's info
@@ -345,10 +607,53 @@ window.addEventListener('click', (event) => {
 // Sync hitboxes with celestial bodies
 function syncHitboxes() {
     sunHitbox.position.copy(sun.position);
-    earthHitbox.position.copy(earth.position);
-    moonHitbox.position.copy(moon.position);
-}
+    const mercury = planetMap.get('Mercury'); // Get Mercury from the map
+    if (mercury) {
+        mercuryHitbox.position.copy(mercury.position);
+    }
+    // Sync Venus Hitbox
+    const venus = planetMap.get('Venus'); // Get Venus from the map
+    if (venus) {
+        venusHitbox.position.copy(venus.position);
+    }
 
+    // Sync Earth Hitbox
+    const earth = planetMap.get('Earth'); // Get Earth from the map
+    if (earth) {
+        earthHitbox.position.copy(earth.position);
+    }
+
+    // Sync Mars Hitbox
+    const mars = planetMap.get('Mars'); // Get Mars from the map
+    if (mars) {
+        marsHitbox.position.copy(mars.position);
+    }
+
+    // Sync Jupiter Hitbox
+    const jupiter = planetMap.get('Jupiter'); // Get Jupiter from the map
+    if (jupiter) {
+        jupiterHitbox.position.copy(jupiter.position);
+    }
+
+    // Sync Saturn Hitbox
+    const saturn = planetMap.get('Saturn'); // Get Saturn from the map
+    if (saturn) {
+        saturnHitbox.position.copy(saturn.position);
+    }
+
+    // Sync Uranus Hitbox
+    const uranus = planetMap.get('Uranus'); // Get Uranus from the map
+    if (uranus) {
+        uranusHitbox.position.copy(uranus.position);
+    }
+
+    // Sync Neptune Hitbox
+    const neptune = planetMap.get('Neptune'); // Get Neptune from the map
+    if (neptune) {
+        neptuneHitbox.position.copy(neptune.position);
+    }
+}
+/*
 // Animate the scene
 function animate() {
     requestAnimationFrame(animate);
@@ -389,6 +694,65 @@ window.addEventListener('resize', () => {
 
 // Start the animation
 animate();
+*/
+
+function animate() {
+    requestAnimationFrame(animate);
+    // Update corona noise effect over time
+    const time = performance.now() * 0.001;  // Time variable
+    coronaMesh.userData.update(time);
+
+    // Update positions of all planets in the scene
+    planetDataArray.forEach(planetData => {
+        const orbitParams = createOrbitParams(planetData);
+        const planet = planetMap.get(planetData.Planet); // Get the planet from the map
+
+        if (planet) { // Ensure the planet exists before updating its position
+            // Update the planet's position at the current time
+            const speed = planet.userData.speed; // Get the speed from userData
+            const adjustedSimTime = sim_time * speed;
+
+            const { X, Y, Z } = getOrbitPosition(
+                orbitParams.a, orbitParams.e, orbitParams.I,
+                orbitParams.L, orbitParams.w, orbitParams.omega, adjustedSimTime, orbitParams.T
+            );
+            planet.position.set(X, Y, Z);
+            planet.rotation.y += (2 * Math.PI) / (orbitParams.rotationPeriod * 60 * 60); // Rotate based on period
+            const tag = planet.userData.tag;
+            if (tag) {
+                tag.position.set(X, Y + 60, Z); // Keep the tag above the planet
+            }
+        } else {
+            console.warn(`Planet ${planetData.Planet} not found in the map.`);
+        }
+    });
+
+    // Update time (you can make it move backward/forward based on user input)
+    sim_time += dt;
+
+    // Moon orbital motion around Earth
+    const earth = planetMap.get('Earth'); // Access Earth from the map
+    if (earth) {
+        const X = earth.position.x;
+        const Y = earth.position.y;
+        moonangle += moonspeed;
+        const moonX = X + emRadius * Math.cos(moonangle);
+        const moonY = Y + emRadius * Math.sin(moonangle);
+        moon.position.set(moonX, moonY, 0);
+    } else {
+        console.warn('Earth not found in the map.');
+    }
+    
+    // Rotate the Sun
+    sun.rotation.y += 0.001;
+    syncHitboxes();
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+animate();
+
 
 // Function to reset camera view
 function resetCameraView(camera, controls) {

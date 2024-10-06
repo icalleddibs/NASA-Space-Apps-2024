@@ -204,6 +204,7 @@ input[type="checkbox"] {
 .scrollable-content {
     flex: 1; /* Allows this section to grow */
     overflow-y: auto; /* Enables vertical scrolling if needed */
+    width: 1000px; /* Full width */
     padding: 20px;
     max-height: 60vh; /* Sets a max height for scrolling behavior */
     color: white; /* Text color */
@@ -212,10 +213,9 @@ input[type="checkbox"] {
 .mission-statement {
     text-align: right; /* Aligns text to the right */
     font-size: 50px; /* Sets font size */
-    padding: 0px 200px; /* Adjust padding for aesthetics */
+    padding: 0px 450px; /* Adjust padding for aesthetics */
     margin-top: -140px; /* Adjusts vertical positioning */
     color: white; /* Text color */
-    
     float: right; /* Aligns the box to the right */
     white-space: nowrap; /* Prevents text from wrapping */
 }

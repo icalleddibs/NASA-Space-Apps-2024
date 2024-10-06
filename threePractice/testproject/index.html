@@ -12,7 +12,7 @@
 <body>
     <!-- Left Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
-        <img src="logo.webp" style="width: 100%; height: auto;">
+        <img src="/images/logo.png" style="width: 100%; height: auto;">
         <h2>Orrery WebApp</h2>
         <ul>
             <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
@@ -26,36 +26,36 @@
     <!-- Main Content -->
     <div class="main-content">
         <div id="home-content" class="tab-content homepage-background" style="display: block;">
-        </div>
-        <div id="image-section" style="position: relative; text-align: center;">
-            <img src="homepage-bg.png" style="max-width: 100%;"> <!-- Replace with your image path -->
-            
-            <!-- Text Over the Image -->
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
-                <h1 style="font-size: 100px;">NAME OF PRODUCT</h1>
-                <p style="font-size: 30px;">This is some tagline or description.</p>
-            </div>
-        </div>
         
-        <!-- New Scrollable Section -->
-        <div id="scrollable-section">
-            <div class="mission-statement" style="margin-left: 20px;">
-                <h2>Mission Statement</h2>
+            <div id="image-section" style="position: relative; text-align: center;">
+                <img src="/images/homepage-bg.png" style="max-width: 100%;"> <!-- Replace with your image path -->
+                
+                <!-- Text Over the Image -->
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                    <h1 style="font-size: 100px;">NAME OF PRODUCT</h1>
+                    <p style="font-size: 30px;">This is some tagline or description.</p>
+                </div>
             </div>
-            <div class="scrollable-content">
-                <p>This section is below the homepage content. You can add more information, images, or anything else you want.</p>
-                <p>More text to make this section longer. This will demonstrate scrolling behavior when the content exceeds the viewport height.</p>
-                <p>Keep adding content here to create a scrollable effect!</p>
-                <p>More content...</p>
-                <p>More content...</p>
-                <p>More content...</p>
-                <p>More content...</p>
-                <p>More content...</p>
-                <p>More content...</p>
-                <p>More content...</p>
+            
+            <!-- New Scrollable Section -->
+            <div id="scrollable-section">
+                <div class="mission-statement" style="margin-left: 20px;">
+                    <h2>Mission Statement</h2>
+                </div>
+                <div class="scrollable-content">
+                    <p>This section is below the homepage content. You can add more information, images, or anything else you want.</p>
+                    <p>More text to make this section longer. This will demonstrate scrolling behavior when the content exceeds the viewport height.</p>
+                    <p>Keep adding content here to create a scrollable effect!</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                    <p>More content...</p>
+                </div>
             </div>
         </div>
-
         <div id="resources-content" class="tab-content" style="display: none;">
             <h2>Resources</h2>
             <p>Information about resources can be displayed here.</p>
@@ -86,8 +86,10 @@
         </div>
 
         <div id="earth-content" class="tab-content" style="display: none;">
-            <h2>Zoomed Earth View</h2>
-            <p>Details about the Earth view can be displayed here.</p>
+            <canvas id="sats"></canvas>
+                <div id="app"></div>
+                <script type="module" src="/sats/satellites.js"></script>
+            </body>
         </div>
 
         <div id="about-content" class="tab-content" style="display: none;">
