@@ -2,7 +2,7 @@ import * as THREE from 'three';
 //COORDINATES:
 function createOrbitParams(planetData) {
   //console.warn(planetData["long.node.  [deg]"]);
-  //console.log(Object.keys(planetData));
+  console.log(Object.keys(planetData));
     return {
         a: parseFloat(planetData["a [au]"]) * 400, // Convert AU to scene units
         e: parseFloat(planetData["e [rad]"]),      // Access 'e [rad]' correctly
@@ -10,7 +10,9 @@ function createOrbitParams(planetData) {
         L: parseFloat(planetData["L [deg]"]),      // Access 'L [deg]'
         w: parseFloat(planetData["long.peri.  [deg]"]), // Access 'long.peri. [deg]'
         omega: parseFloat(planetData["long.node.  [deg]"]), // Access 'long.node. [deg]'
-        T: 365.25 * 24 * 3600 // Approximate year (can be adjusted per planet)
+        rotationPeriod: parseFloat(planetData["rot_axis [h]"]),
+        speed: parseFloat(planetData["orb_velocity[km/s]"]),
+        T: 365.25 * 24 * 360 // Approximate year (can be adjusted per planet)
     };
 }
 // Helper functions to convert degrees to radians
@@ -35,13 +37,13 @@ function getOrbitPosition(a, e, I, L, w, omega, t, T) {
     const M = n * t; // Mean anomaly
     const E = solveKepler(e, M); // Eccentric anomaly
   
-    // True anomaly
+    // True anomaly https://en.wikipedia.org/wiki/True_anomaly
     const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
   
     // Distance from the focus (sun) to the object
     const r = a * (1 - e * Math.cos(E));
   
-    // Position in the orbital plane (before rotation)
+    // Position in the orbital plane (before rotation z = 0)
     let x = r * Math.cos(nu);
     let y = r * Math.sin(nu);
   
@@ -53,7 +55,7 @@ function getOrbitPosition(a, e, I, L, w, omega, t, T) {
     const cosW = Math.cos(degToRad(w));
     const sinW = Math.sin(degToRad(w));
   
-    // Apply the 3D transformations using the rotation matrix
+    // Apply the 3D transformations using the rotation matrix (3x2 because Z is 0)
     const X = (cosOmega * cosW - sinOmega * sinW * cosI) * x + (-cosOmega * sinW - sinOmega * cosW * cosI) * y;
     const Y = (sinOmega * cosW + cosOmega * sinW * cosI) * x + (-sinOmega * sinW + cosOmega * cosW * cosI) * y;
     const Z = (sinW * sinI) * x + (cosW * sinI) * y;
@@ -62,7 +64,7 @@ function getOrbitPosition(a, e, I, L, w, omega, t, T) {
 }
 
 // Orbit plotting function
-function createOrbit(a, e, I, w, omega, T, numPoints = 100) {
+function createOrbit(a, e, I, w, omega, T, numPoints = 3000) {
     const points = [];
     for (let i = 0; i < numPoints; i++) {
         const t = (i / numPoints) * T; // Time in seconds

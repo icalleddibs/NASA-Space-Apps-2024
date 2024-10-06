@@ -5,9 +5,9 @@ import { ImprovedNoise } from 'https://unpkg.com/three/examples/jsm/math/Improve
 
 import { getOrbitPosition, createOrbit, createOrbitParams } from './moveapi.js';
 
-let planetDataArray = [];
 // Scene setup
 const scene = new THREE.Scene();
+let sim_time = 0;
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
@@ -17,6 +17,7 @@ camera.position.setZ(500);
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
+
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -26,7 +27,6 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // You can use other types to
 
 
 // Add background
-//const spaceTexture = new THREE.TextureLoader().load('textures\\back.jpg');
 scene.background = new THREE.Color(0x000000);;
 
 // Lighting
@@ -41,7 +41,8 @@ scene.add(ambientLight);
 
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);
-
+const orbitLinesCheckbox = document.querySelector('#orbit-lines-checkbox');
+const planetNamesCheckbox = document.querySelector('#label-checkbox');
 
 // Textures
 const moonTexture = new THREE.TextureLoader().load('textures\\moon.jpg');
@@ -59,17 +60,41 @@ const neptuneTexture = new THREE.TextureLoader().load('textures\\neptune.png');
 //Parse csv file
 async function loadPlanetData() {
     try {
+      //const response = await fetch('/data/planets.csv');
       const response = await fetch('https://raw.githubusercontent.com/icalleddibs/NASA-Space-Apps-2024/refs/heads/planets/data/planets.csv');
       if (!response.ok) {
           throw new Error('Network response was not ok');
       }
       const csvData = await response.text();
       const parsedData = Papa.parse(csvData, { header: true, skipEmptyLines: true }).data; // Parses the CSV into an array of objects
+      console.log(parsedData);
       return parsedData; // Return the parsed planet data
   } catch (error) {
       console.error('Error fetching or parsing planet data:', error);
   }
 }
+
+//store main objects:
+let planetDataArray = [];
+let orbits = [];
+
+
+//creating planet labels
+function createPlanetTag(planetName) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = '30px Arial';
+  context.fillStyle = 'white';
+  context.fillText(planetName, 10, 40);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(50, 25, 1); // Adjust the size to fit your scene
+
+  return sprite;
+}
+
 
 //creating planets
 async function createPlanets(scene) {
@@ -81,15 +106,42 @@ async function createPlanets(scene) {
       const orbitParams = createOrbitParams(planetData);
       console.warn(planetData);
       console.warn(orbitParams);
+      console.warn(planetData.Planet);
 
+      
+      let pl_radius = 20;
+      if (planetData.Planet == 'Mercury') {
+        pl_radius = 10;
+      } else if (planetData.Planet == 'Venus') {
+        pl_radius = 30;
+      } else if (planetData.Planet == 'Earth') {
+        pl_radius = 30;
+      } else if (planetData.Planet == 'Mars') {
+        pl_radius = 15;
+      } else if (planetData.Planet == 'Jupiter') {
+        pl_radius = 300;
+      } else if (planetData.Planet == 'Saturn') {
+        pl_radius = 282;
+      } else if (planetData.Planet == 'Uranus') {
+        pl_radius = 127;
+      } else if (planetData.Planet == 'Neptune') {
+        pl_radius = 120;
+      } 
+      
       // Create planet mesh (you may want to adjust sizes for each planet)
       const planetTexture = new THREE.TextureLoader().load(`textures/${planetData.Planet.toLowerCase()}.jpg`);
       const planet = new THREE.Mesh(
-          new THREE.SphereGeometry(30, 32, 32), // Adjust size
+          new THREE.SphereGeometry(pl_radius, 32, 32), // Adjust size
           new THREE.MeshStandardMaterial({ map: planetTexture })
       );
 
       planet.name = planetData.Planet;
+      // Parse speed value
+      const speed = parseFloat(planetData[" orb_velocity[km/s]"]) /100 || 1; // Default speed if parsing fails
+        
+      // Store speed in userData for later use
+      planet.userData.speed = speed;
+
       console.warn(planet.name);
       // Create orbit for the planet
       const orbit = createOrbit(
@@ -100,6 +152,7 @@ async function createPlanets(scene) {
           orbitParams.omega,
           orbitParams.T
       );
+      orbits.push(orbit);
 
       // Add planet and its orbit to the scene
       scene.add(orbit);
@@ -107,28 +160,24 @@ async function createPlanets(scene) {
 
       // Set planet's initial position (can be animated later)
       const { X, Y, Z } = getOrbitPosition(
-          orbitParams.a, orbitParams.e, orbitParams.I,
+          orbitParams.a, orbitParams.e, orbitParams.I, // orbitParams.e instead of 0
           orbitParams.L, orbitParams.w, orbitParams.omega, 0, orbitParams.T
       );
       planet.position.set(X, Y, Z);
+      //Apply rotation to fix planet
+      planet.rotation.x = 90;
+
+      //add tag to the planet
+      const tag = createPlanetTag(planet.name);
+        tag.position.set(X, Y + 60, Z); // Offset the tag above the planet
+        planet.userData.tag = tag; // Store the tag in the planet's userData
+        
+        scene.add(tag);
   });
 }
 
 // Call the createPlanets function when setting up the scene
 createPlanets(scene);
-
-/*
-function addReferencePlane(scene) {
-  const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
-  const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide, opacity: 0.01, transparent: true });
-  const referencePlane = new THREE.Mesh(planeGeometry, planeMaterial);
-  
-  // Rotate the plane to align it with the "flat" reference (XY plane)
-  referencePlane.rotation.x = Math.PI/2; // Align the plane with the XY plane
-  scene.add(referencePlane);
-}
-addReferencePlane(scene);
-*/
 
 // Create the Moon sphere
 const moon = new THREE.Mesh(
@@ -178,7 +227,7 @@ function getCorona(radiation) {
 
 
 const sun = new THREE.Mesh(
-  new THREE.SphereGeometry(sun_radius, 32, 32),
+  new THREE.SphereGeometry(sun_radius, 40, 40),
   new THREE.MeshStandardMaterial({emissive: 0xff0000, map: sunTexture })
 );
 let radiation = 5
@@ -192,8 +241,7 @@ let moonangle = 0;
 let moonspeed = 0.03;
 
 // Animate the scene
-let sim_time = 0;
-let dt = 60 * 60; // 1 hour timestep
+let dt = 60*60; // 1 hour timestep
   
 function animate() {
   requestAnimationFrame(animate);
@@ -208,17 +256,25 @@ function animate() {
 
       if (planet) { // Ensure planet exists before updating its position
           // Update the planet's position at the current time
+          const speed = planet.userData.speed; // Get the speed from userData
+          console.warn(speed);
+          const adjustedSimTime = sim_time * speed;
+
           const { X, Y, Z } = getOrbitPosition(
-              orbitParams.a, orbitParams.e, orbitParams.I,
-              orbitParams.L, orbitParams.w, orbitParams.omega, sim_time, orbitParams.T
+              orbitParams.a, orbitParams.e, orbitParams.I, //orbitParams.e
+              orbitParams.L, orbitParams.w, orbitParams.omega, adjustedSimTime, orbitParams.T
           );
           planet.position.set(X, Y, Z);
+          planet.rotation.y += (2*60 * Math.PI) / (orbitParams.rotationPeriod * 60 * 60); // Rotate based on period
+          const tag = planet.userData.tag;
+            if (tag) {
+                tag.position.set(X, Y + 60, Z); // Keep the tag above the planet
+            }
       } else {
           console.warn(`Planet ${planetData.Planet} not found in the scene.`);
       }
   });
   
-
   // Update time (you can make it move backward/forward based on user input)
   sim_time += dt;
 
@@ -251,6 +307,33 @@ window.addEventListener('resize', () => {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
 });
+/*
+orbitLinesCheckbox.addEventListener('change', function() {
+  if (orbitLinesCheckbox.checked) {
+      orbits.forEach(orbit => {
+          orbit.visible = true; 
+      });
+      console.log("Orbit lines checked");
+  } else {
+      orbits.forEach(orbit => {
+          orbit.visible = false; 
+      });
+      console.log("Orbit lines unchecked");
+  }
+});
 
+
+planetNamesCheckbox.addEventListener('change', function() {
+  const isChecked = planetNamesCheckbox.checked; // Store the checkbox state
+    planetDataArray.forEach(planetData => {
+        const planet = scene.getObjectByName(planetData.Planet); 
+        if (planet && planet.userData.tag) {
+            planet.userData.tag.visible = isChecked;  // Toggle label visibility based on checkbox state
+        }
+    });
+
+    console.log(`Planet names ${isChecked ? 'checked' : 'unchecked'}`); // Log based on the checkbox state
+});
+*/
 // Start the animation
 animate();
