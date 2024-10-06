@@ -1,9 +1,10 @@
+//functions were created by following https://nasa.github.io/mission-viz/RMarkdown/Elliptical_Orbit_Design.html
+//and adating the 3d transformation to a single matrix following https://en.wikipedia.org/wiki/Orbital_elements
+//https://en.wikipedia.org/wiki/True_anomaly
 import * as THREE from 'three';
-
 //COORDINATES:
 function createOrbitParams(planetData) {
-  //console.warn(planetData["long.node.  [deg]"]);
-  //console.log(Object.keys(planetData));
+  
     return {
         a: parseFloat(planetData["a [au]"]) * 400, // Convert AU to scene units
         e: parseFloat(planetData["e [rad]"]),      // Access 'e [rad]' correctly
@@ -38,7 +39,7 @@ function getOrbitPosition(a, e, I, L, w, omega, t, T) {
     const M = n * t; // Mean anomaly
     const E = solveKepler(e, M); // Eccentric anomaly
   
-    // True anomaly https://en.wikipedia.org/wiki/True_anomaly
+    // True anomaly 
     const nu = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
   
     // Distance from the focus (sun) to the object
@@ -74,7 +75,7 @@ function createOrbit(a, e, I, w, omega, T, numPoints = 3000) {
     }
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+    const material = new THREE.LineBasicMaterial({ color: 0xDAA929 });
     const orbitLine = new THREE.Line(geometry, material);
     
     return orbitLine;
@@ -84,3 +85,5 @@ function createOrbit(a, e, I, w, omega, T, numPoints = 3000) {
 export {getOrbitPosition};
 export {createOrbitParams};
 export {createOrbit};
+export{solveKepler};
+export{degToRad};

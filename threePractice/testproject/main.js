@@ -2,7 +2,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; //
 import * as THREE from 'three';
 import Papa from 'papaparse';
 import { ImprovedNoise } from 'https://unpkg.com/three/examples/jsm/math/ImprovedNoise.js';
-
+import { createAsteroidOrbitParams, createAndPlotAsteroid } from '/planets/asteroids.js';
 import { getOrbitPosition, createOrbit, createOrbitParams } from '/planets/moveapi.js';
 
 let celestialBodies = []; // To store celestial pbodydata
@@ -81,11 +81,28 @@ async function loadPlanetData() {
   }
 }
 
+async function loadAsteroidData() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/icalleddibs/NASA-Space-Apps-2024/refs/heads/planets/data/NEO.csv');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const csvData = await response.text();
+        const parsedData = Papa.parse(csvData, { header: true, skipEmptyLines: true }).data;
+        return parsedData; // Return parsed asteroid data
+    } catch (error) {
+        console.error('Error fetching or parsing asteroid data:', error);
+    }
+  }
+
 // start planets -----------------------------------------------------------------------------------------------
 
 //store main objects:
 let planetDataArray = [];
 let orbits = [];
+let asteroids = [];
+let hazardousAsteroids = [];
+let non_hazardousAsteroids = [];
 
 //create planet labels
 function createPlanetTag(planetName) {
@@ -157,6 +174,21 @@ async function createPlanets(scene) {
             orbitParams.L, orbitParams.w, orbitParams.omega, 0, orbitParams.T
         );
         planet.position.set(X, Y, Z);
+        if (planetData.Planet == 'Saturn') {
+            const ringGeo = new THREE.RingGeometry(1.5 * pl_radius, 2.0 * pl_radius, 64);
+            const ringTex = new THREE.TextureLoader().load("https://firebasestorage.googleapis.com/v0/b/farpoint-js.appspot.com/o/saturn%2Fsaturn-ring.webp?alt=media&token=76117245-5be7-4c23-aee1-f33696f0d256");
+            const ringMat = new THREE.MeshStandardMaterial({
+                map: ringTex,
+                side: THREE.DoubleSide,
+                transparent: true,
+            });
+            const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = Math.PI; // Rotate the ring to lay flat
+        ringMesh.position.set(X, Y, Z); // Set the initial position of the ring
+        planet.userData.ringMesh = ringMesh; // Store the ring mesh in userData
+        scene.add(ringMesh);
+      }
+
         planet.rotation.x = 90;
 
         // Create tag for the planet and store it in tagsMap
@@ -236,11 +268,25 @@ const sun = new THREE.Mesh(
   // Animate the scene
   let dt = 60*60; // 1 hour timestep
 
-//animate here
-
 // end planets ---------------------------------------------------------------------------------------------------------------------
 
+// create asteroids ----------------------------------------------------------------------------------------------------------------
 
+async function createAsteroids(scene) {
+    asteroids = await loadAsteroidData(); // Load the CSV data for asteroids
+    asteroids.forEach(asteroidData => {
+        createAndPlotAsteroid(asteroidData, scene); // Create and plot each asteroid as a point
+        if (asteroidData.pha == "Y") {
+            hazardousAsteroids.push(asteroidData);
+        } else if (asteroidData.pha == "N") {
+            non_hazardousAsteroids.push(asteroidData);
+        }
+    });
+    console.log('Loaded asteroid data:', asteroids);
+    console.log('Hazardous asteroids:', hazardousAsteroids);
+    console.log('Non-hazardous asteroids:', non_hazardousAsteroids);
+  }
+  createAsteroids(scene);
 
 
 
@@ -482,6 +528,8 @@ function updateSidebar(body) {
 const orbitLinesCheckbox = document.getElementById('orbit-lines-checkbox');
 const planetNamesCheckbox = document.getElementById('planet-names-checkbox');
 const solarWindCheckbox = document.getElementById('solar-wind-checkbox');
+const hazardousCheckbox = document.getElementById('hazardous-checkbox');
+const nonHazardousCheckbox = document.getElementById('non-hazardous-checkbox');
   
 
 orbitLinesCheckbox.addEventListener('change', function() {
@@ -519,7 +567,35 @@ solarWindCheckbox.addEventListener('change', function() {
         solarWindSimulationRunning = false; // Set the flag to false
     }
 });
- 
+
+
+hazardousCheckbox.addEventListener('change', function() {
+    if (hazardousCheckbox.checked) {
+      hazardousAsteroids.forEach(asteroid => {
+          asteroid.visible = true; 
+      });
+      console.log("hazardous asteroids checked");
+  } else {
+      hazardousAsteroids.forEach(asteroid => {
+        asteroid.visible = false; 
+      });
+      console.log("hazardous asteroids unchecked");
+  }
+  });
+  
+  nonHazardousCheckbox.addEventListener('change', function() {
+    if (hazardousCheckbox.checked) {
+      non_hazardousAsteroids.forEach(asteroid => {
+          asteroid.visible = true; 
+      });
+      console.log("non-hazardous asteroids checked");
+  } else {
+      non_hazardousAsteroids.forEach(asteroid => {
+        asteroid.visible = false; 
+      });
+      console.log("non-hazardous asteroids unchecked");
+  }
+  });
 
 // raycaster -------------------------------------------------------------------
 
@@ -628,6 +704,12 @@ function animate() {
             );
             planet.position.set(X, Y, Z);
             planet.rotation.y += (2 * Math.PI) / (orbitParams.rotationPeriod * 60 * 60); // Rotate based on period
+            if (planetData.Planet === 'Saturn') {
+                const ringMesh = planet.userData.ringMesh; // Access the ring mesh from userData
+                if (ringMesh) {
+                    ringMesh.position.set(X, Y, Z); // Update ring mesh position
+                }
+            }
             const tag = planet.userData.tag;
             if (tag) {
                 tag.position.set(X, Y + 60, Z); // Keep the tag above the planet
@@ -636,6 +718,21 @@ function animate() {
             console.warn(`Planet ${planetData.Planet} not found in the map.`);
         }
     });
+
+    asteroids.forEach(asteroidData => {
+        const asteroid = scene.getObjectByName(asteroidData.full_name);
+        if (asteroid) {
+          const asteroidParams = createAsteroidOrbitParams(asteroidData);
+          const adjustedSimTime = sim_time; // Use simulation time directly or apply a speed factor if necessary
+    
+          const { X, Y, Z } = getOrbitPosition(
+            asteroidParams.a, asteroidParams.e, asteroidParams.I,
+            asteroidParams.L, asteroidParams.w, asteroidParams.omega, adjustedSimTime, asteroidParams.T
+          );
+          
+          asteroid.position.set(X, Y, Z); // Update asteroid position
+        }
+      });
 
     // Update time (you can make it move backward/forward based on user input)
     sim_time += dt;
