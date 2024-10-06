@@ -169,7 +169,7 @@ async function createPlanets(scene) {
   
         // Set planet's initial position (can be animated later)
         const { X, Y, Z } = getOrbitPosition(
-            orbitParams.a, orbitParams.e, orbitParams.I, // orbitParams.e instead of 0
+            orbitParams.a, orbitParams.e, orbitParams.I,
             orbitParams.L, orbitParams.w, orbitParams.omega, 0, orbitParams.T
         );
         planet.position.set(X, Y, Z);
@@ -180,7 +180,7 @@ async function createPlanets(scene) {
         const tag = createPlanetTag(planet.name);
           tag.position.set(X, Y + 60, Z); // Offset the tag above the planet
           planet.userData.tag = tag; // Store the tag in the planet's userData
-          
+          planet.userData.tagVisible = true; // Initialize visibility flag
           scene.add(tag);
     });
   }
@@ -259,7 +259,7 @@ const sun = new THREE.Mesh(
 
 // solar wind ----------------------------------------------------------------------------------------------------------------------
 
-/*
+
 
 
 // Solar Wind - Fetch Data Functionality
@@ -362,7 +362,6 @@ async function simulateSolarWind() {
     }
     animate(); // Start the animation
 }
-    */
 
 
 // end solar wind ----------------------------------------------------------------------------------------------------------------------
@@ -387,8 +386,8 @@ function addStar() {
 Array(300).fill().forEach(addStar);
 
 
+// Create Hitboxes for Celestial Bodies ---------------------------------------------------------------------
 
-// Create hitboxes for Sun, Earth, and Moon using cube geometries
 const sunHitbox = new THREE.Mesh(
     new THREE.BoxGeometry(125, 125, 125),  // Adjust size as needed
     new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5, visible: false}) // Red for visibility
@@ -460,15 +459,8 @@ const neptuneHitbox = new THREE.Mesh(
 neptuneHitbox.name = "Neptune";
 scene.add(neptuneHitbox);
 
-// Moon Hitbox (Example for Earth)
-const moonHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(45, 45, 45), // Adjust size based on the moon's radius
-    new THREE.MeshBasicMaterial({ color: 0xaaaaaa, transparent: true, opacity: 0.5, visible: false })
-);
-moonHitbox.name = "Moon";
-scene.add(moonHitbox);
+// Sidebar and Planet Info ------------------------------------------------------------------------------------
 
-// Sidebar and planet info elements
 const rightSidebar = document.getElementById('right-sidebar');
 const closeSidebarButton = document.getElementById('close-sidebar');
 
@@ -492,25 +484,22 @@ closeSidebarButton.addEventListener('click', closeSidebar);
 // Function to update sidebar with planet info
 function updateSidebar(body) {
     document.getElementById('planet-name').textContent = body.name;
-    
-    // Update the values for each field using textContent
     document.getElementById('distance-value').textContent = `${body.distanceFromSun} km`;
     document.getElementById('orbit-value').textContent = `${body.orbitalPeriod} days`;
-    document.getElementById("day-value").textContent = `${body.dayLength} hours`; // Added day length
+    document.getElementById("day-value").textContent = `${body.dayLength} hours`; 
     document.getElementById('temperature-value').textContent = `${body.temperature} °C`;
     document.getElementById('moons-value').textContent = `${body.moons}`;
-    document.getElementById('planet-blurb').textContent = body.blurb; // Added blurb
-    document.getElementById('diameter-value').textContent = `${body.diameter} km`; // Added diameter
-    document.getElementById('mass-value').textContent = `${body.mass} x 10²⁴ kg`; // Added mass
-    document.getElementById('type-value').textContent = body.typeOfPlanet; // Added type of planet
-    document.getElementById('rings-value').textContent = `${body.rings}`; // Added rings
-    document.getElementById('gravity-value').textContent = `${body.gravity} m/s²`; // Added gravity
-    document.getElementById('atmosphere-value').textContent = body.atmosphere; // Added atmosphere
+    document.getElementById('planet-blurb').textContent = body.blurb;
+    document.getElementById('diameter-value').textContent = `${body.diameter} km`; 
+    document.getElementById('mass-value').textContent = `${body.mass} x 10²⁴ kg`;
+    document.getElementById('type-value').textContent = body.typeOfPlanet; 
+    document.getElementById('rings-value').textContent = `${body.rings}`; 
+    document.getElementById('gravity-value').textContent = `${body.gravity} m/s²`; 
+    document.getElementById('atmosphere-value').textContent = body.atmosphere; 
     
     openSidebar();
-    
 }
-/*
+
 
 // toggle buttons -------------------------------------------------------------------
 
@@ -540,23 +529,14 @@ planetNamesCheckbox.addEventListener('change', function() {
         const planet = scene.getObjectByName(planetData.Planet); 
         if (planet && planet.userData.tag) {
             planet.userData.tag.visible = isChecked;  // Toggle label visibility based on checkbox state
+            planet.userData.tagVisible = isChecked; // Update the flag
+            console.log("is", isChecked)
         }
     });
 
     console.log(`Planet names ${isChecked ? 'checked' : 'unchecked'}`); // Log based on the checkbox state
 });
 
-// solarWindCheckbox.addEventListener('change', function() {
-//   if (solarWindCheckbox.checked) {
-//     // condition to show solar wind
-//     console.log("Solar wind checked");
-//     simulateSolarWind();
-
-//   } else {
-//     // condition to hide solar wind
-//     console.log("Solar wind unchecked");
-//   }
-// });
 
 solarWindCheckbox.addEventListener('change', function() {
     if (solarWindCheckbox.checked) {
@@ -569,9 +549,10 @@ solarWindCheckbox.addEventListener('change', function() {
         solarWindSimulationRunning = false; // Set the flag to false
     }
 });
+ 
 
-// toggle buttons -------------------------------------------------------------------
-*/
+// raycaster -------------------------------------------------------------------
+
 
 // Raycaster for detecting clicks
 const raycaster = new THREE.Raycaster();
@@ -653,48 +634,7 @@ function syncHitboxes() {
         neptuneHitbox.position.copy(neptune.position);
     }
 }
-/*
-// Animate the scene
-function animate() {
-    requestAnimationFrame(animate);
 
-    // Earth orbital motion
-    const earthX = orbitRadius * Math.cos(angle);
-    const earthY = orbitRadius * Math.sin(angle);
-    earth.position.set(earthX, earthY, 0);
-
-    // Moon orbital motion around Earth
-    const moonX = earthX + orbitRadius2 * Math.cos(angle2);
-    const moonY = earthY + orbitRadius2 * Math.sin(angle2);
-    moon.position.set(moonX, moonY, 0);
-
-    // Increment angles for orbital motion
-    angle += speed;
-    angle2 += speed2;
-
-    // Rotate the Sun
-    sun.rotation.y += 0.001;
-
-    // Sync hitboxes with celestial bodies
-    syncHitboxes();
-
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-// Resize handler
-window.addEventListener('resize', () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    renderer.setSize(width, height);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-});
-
-// Start the animation
-animate();
-*/
 
 function animate() {
     requestAnimationFrame(animate);
