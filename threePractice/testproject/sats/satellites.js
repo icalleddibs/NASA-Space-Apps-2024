@@ -86,7 +86,7 @@ function createSatelliteMesh(size = 2, color = 0xdef2ff) {
 }
 
 // Fetch TLE data
-const tleURL = "celestrak_active.txt"; // Replace with your TLE source
+const tleURL = "https://raw.githubusercontent.com/icalleddibs/NASA-Space-Apps-2024/refs/heads/master/threePractice/testproject/celestrak_active.txt"; // Replace with your TLE source
 fetchTLEData(tleURL).then(tleData => {
     if (tleData) {
         const now = new Date();

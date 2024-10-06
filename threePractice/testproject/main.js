@@ -54,7 +54,7 @@ const controls = new OrbitControls(camera, renderer.domElement);
 // Textures
 const moonTexture = new THREE.TextureLoader().load('textures\\moon.jpg');
 const earthTexture = new THREE.TextureLoader().load('textures\\earth.jpg');
-const sunTexture = new THREE.TextureLoader().load('textures\\sun.png');
+const sunTexture = new THREE.TextureLoader().load('textures\\sun.jpg');
 const mercuryTexture = new THREE.TextureLoader().load('textures\\mercury.png');
 const venusTexture = new THREE.TextureLoader().load('textures\\venus.png');
 const marsTexture = new THREE.TextureLoader().load('textures\\mars.png');
@@ -68,7 +68,7 @@ const neptuneTexture = new THREE.TextureLoader().load('textures\\neptune.png');
 async function loadPlanetData() {
     try {
       //const response = await fetch('/data/planets.csv');
-      const response = await fetch('/planets/planets.csv');
+      const response = await fetch('https://raw.githubusercontent.com/icalleddibs/NASA-Space-Apps-2024/refs/heads/planets/data/planets.csv');
       if (!response.ok) {
           throw new Error('Network response was not ok');
       }
@@ -566,8 +566,9 @@ window.addEventListener('click', (event) => {
     //console.log("TESTING:", hitboxes);
     //const intersects = raycaster.intersectObjects(hitboxes);
     //const intersects = raycaster.intersectObjects(scene.children); // Check against all scene children
-    console.log("name of object", intersects[0].object.name);
-
+    if (intersects){
+        console.log("name of object", intersects[0].object.name);
+    }
 
     if (intersects.length > 0) {
         const clickedHitbox = intersects[0].object; // Get the clicked hitbox

@@ -130,8 +130,8 @@ button:hover {
 
 
 .control-panel {
-    width: 270px; 
-    font-size: 25px;
+    width: flex; 
+    font-size: 14px;
     height: auto; 
     background-color: white;
     position: absolute;
