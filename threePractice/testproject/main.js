@@ -360,20 +360,6 @@ async function simulateSolarWind() {
 
 
 
-// Stars
-function addStar() {
-    const geometry = new THREE.SphereGeometry(1, 24, 24);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const star = new THREE.Mesh(geometry, material);
-
-    const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(1000));
-
-    star.position.set(x, y, z);
-    scene.add(star);
-}
-Array(300).fill().forEach(addStar);
-
-
 // Create Hitboxes for Celestial Bodies ---------------------------------------------------------------------
 
 const sunHitbox = new THREE.Mesh(
@@ -494,6 +480,8 @@ function updateSidebar(body) {
 const orbitLinesCheckbox = document.getElementById('orbit-lines-checkbox');
 const planetNamesCheckbox = document.getElementById('planet-names-checkbox');
 const solarWindCheckbox = document.getElementById('solar-wind-checkbox');
+const nHazCheckbox = document.getElementById('hazardous-checkbox');
+const hazCheckbox = document.getElementById('nhazardous-checkbox');
   
 
 orbitLinesCheckbox.addEventListener('change', function() {
