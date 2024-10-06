@@ -41,15 +41,17 @@ scene.add(ambientLight);
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement);
 
-// Define the earth radius
-const earth_radius = 100;
-
 // Create the earth
 const planetTexture = new THREE.TextureLoader().load(`textures/earth.jpg`);
+// Set Earth's radius and position
+const earth_radius = 100;
 const earth = new THREE.Mesh(
   new THREE.SphereGeometry(earth_radius, 32, 32),
-  new THREE.MeshStandardMaterial({map: planetTexture })
+  new THREE.MeshStandardMaterial({map: planetTexture})
 );
+earth.position.set(0, 0, 0);  // Center Earth at (0, 0, 0)
+// Apply axial tilt (23.5 degrees)
+earth.rotation.x = THREE.MathUtils.degToRad(23.5);
 scene.add(earth);
 
 
@@ -59,14 +61,17 @@ const now = new Date();
 
 
 function createSatelliteMesh() {
-  const satelliteGeometry = new THREE.SphereGeometry(3, 16, 16); // Create a small sphere for the satellite
+  const satelliteGeometry = new THREE.SphereGeometry(2, 16, 16); // Create a small sphere for the satellite
   const satelliteMaterial = new THREE.MeshStandardMaterial({ color: 0xdef2ff }); // Red color for visibility
   const satelliteMesh = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
   return satelliteMesh;
 }
 
 // Example URL for active satellites TLE data
-const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle';
+// const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=visual&FORMAT=tle';
+// const tleURL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle';
+const tleURL = "celestrak.txt";
+
 let satelliteMeshes = [];
 
 fetchTLEData(tleURL).then(tleData => {
@@ -88,31 +93,39 @@ fetchTLEData(tleURL).then(tleData => {
 
 // Animate the scene
 let sim_time = 0;
-let dt = 0 // 1 second timestep
-var sat_time = new Date(now.getTime());
-  
-function animate() {
-  requestAnimationFrame(animate);
-
-  // Update time
-  sim_time += dt;
-  sat_time.setSeconds(sat_time.getSeconds() + dt);
-  console.log("Current Simulation Time:", sat_time);
-
-  // Rotate the earth
-  earth.rotation.y += 0.001;
-
-  // Update satellite positions
-  satelliteMeshes.forEach((satMesh, index) => {
-      const sat = satellites[index]; // Retrieve the corresponding satellite
-      const position = getSatellitePosition(sat.line1, sat.line2, sat_time, earth_radius); // Update with simulation time
-      // console.log(position);
-      satMesh.position.set(position.x, position.y, position.z); // Update position
-  });
-
-  controls.update();
-  renderer.render(scene, camera);
+let realtime = true;
+let dt;  // Declare dt here, outside the blocks
+if (realtime==true) {
+    dt = 1/60 *1000;
 }
+else{
+    dt = 600 
+}
+var sat_time = new Date(now.getTime());
+const earthAngularVelocity = 7.2921159e-5;  // radians per second
+function animate(time) {
+    // Update time
+    sat_time.setMilliseconds(sat_time.getMilliseconds() + dt);
+    // console.log(sat_time);
+
+    // Rotate the Earth
+    earth.rotation.y += earthAngularVelocity * dt/1000;
+
+    // Update satellite positions
+    satelliteMeshes.forEach((satMesh, index) => {
+        const sat = satellites[index]; 
+        const position = getSatellitePosition(sat.line1, sat.line2, sat_time, earth_radius);
+        satMesh.position.set(position.x, position.y, position.z); // Update position
+    });
+
+
+    // Continue the animation loop
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+
+}
+
 
 // Resize handler
 window.addEventListener('resize', () => {

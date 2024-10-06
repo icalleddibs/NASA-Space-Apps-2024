@@ -2,8 +2,7 @@ import * as satellite from 'satellite.js';
 
 async function fetchTLEData(url) {
     try {
-        // const response = await fetch(url);
-        const response = await fetch("celestrak.txt");
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Failed to fetch TLE data');
         }
@@ -32,48 +31,28 @@ function parseTLE(tleData) {
 }
 
 
-function getOrbit(tleLine1, tleLine2){
-    const satrec = satellite.twoline2satrec(tleLine1, tleLine2);
-    
-    // Get current time
-    const now = new Date();
 
-    // Propagate satellite position and velocity
-    const positionAndVelocity = satellite.propagate(satrec, now);
-
-    // Get ECI position (x, y, z in km) and velocity (km/s)
-    const positionEci = positionAndVelocity.position;
-    const velocityEci = positionAndVelocity.velocity;
-    console.log('Position (ECI):', positionEci);
-    console.log('Velocity (ECI):', velocityEci);
-
-}
 function getSatellitePosition(TLE1, TLE2, date, earthRadius) {
     const satrec = satellite.twoline2satrec(TLE1, TLE2);
+    // console.log(satrec)
     if (!satrec) {
         console.error("Failed to create satellite record from TLE:", TLE1, TLE2);
         return { x: 0, y: 0, z: 0 }; // Handle invalid satellite record
     }
 
     const positionAndVelocity = satellite.propagate(satrec, date);
-
+    // console.log(positionAndVelocity)
     const positionEci = positionAndVelocity.position;
+    // console.log(positionEci)
 
-    // Convert ECI to ECEF
-    const ecef = satellite.eciToEcf(positionEci, date);
+    
+    return{
+        x : positionEci.x/(earthRadius/2),
+        y : positionEci.y/(earthRadius/2),
+        z : positionEci.z/(earthRadius/2),
 
-    // Check ECEF values for validity
-    if (isNaN(ecef.x) || isNaN(ecef.y) || isNaN(ecef.z)) {
-        console.error("Invalid ECEF position:", ecef);
-        return { x: 0, y: 0, z: 0 };
+
     }
-
-    // Scale ECEF position to fit your Three.js scene
-    return {
-        x: ecef.x / (earthRadius) *4,
-        y: ecef.y / (earthRadius)*4,
-        z: ecef.z / (earthRadius)*4
-    };
 }
 
 
