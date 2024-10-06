@@ -8,7 +8,7 @@ import { getOrbitPosition, createOrbit, createOrbitParams } from '/planets/movea
 let celestialBodies = []; // To store celestial pbodydata
 
 // Fetch celestial bodies data
-fetch('/planets/celestialBodies.json')
+fetch('https://raw.githubusercontent.com/icalleddibs/NASA-Space-Apps-2024/refs/heads/master/threePractice/testproject/planets/celestialBodies.json')
     .then(response => response.json())
     .then(data => {
         celestialBodies = data; // Store the data in the global variable
@@ -360,18 +360,6 @@ async function simulateSolarWind() {
 
 
 
-// Stars
-function addStar() {
-    const geometry = new THREE.SphereGeometry(1, 24, 24);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const star = new THREE.Mesh(geometry, material);
-
-    const [x, y, z] = Array(3).fill().map(() => THREE.MathUtils.randFloatSpread(1000));
-
-    star.position.set(x, y, z);
-    scene.add(star);
-}
-Array(300).fill().forEach(addStar);
 
 
 // Create Hitboxes for Celestial Bodies ---------------------------------------------------------------------
@@ -510,21 +498,7 @@ orbitLinesCheckbox.addEventListener('change', function() {
   }
 });
 
-/*
-planetNamesCheckbox.addEventListener('change', function() {
-  const isChecked = planetNamesCheckbox.checked; // Store the checkbox state
-    planetDataArray.forEach(planetData => {
-        const planet = scene.getObjectByName(planetData.Planet); 
-        if (planet && planet.userData.tag) {
-            planet.userData.tag.visible = isChecked;  // Toggle label visibility based on checkbox state
-            planet.userData.tagVisible = isChecked; // Update the flag
-            console.log("is", isChecked)
-        }
-    });
 
-    console.log(`Planet names ${isChecked ? 'checked' : 'unchecked'}`); // Log based on the checkbox state
-});
-*/
 planetNamesCheckbox.addEventListener('change', function() {
     const isChecked = planetNamesCheckbox.checked; // Store the checkbox state
     tagsMap.forEach((tag) => {

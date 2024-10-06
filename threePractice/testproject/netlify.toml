@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"  # The command Netlify will run to build your site
+  publish = "dist"           # The directory where your build files are generated
+
+[context.production.environment]
+  NODE_VERSION = "16"        # Ensure the correct Node.js version is used during the build
+
+# Optionally, you can define specific settings for deploy previews or branch deploys.
+[context.deploy-preview]
+  command = "npm run build"
+  publish = "dist"
+
+[context.branch-deploy]
+  command = "npm run build"
+  publish = "dist"
