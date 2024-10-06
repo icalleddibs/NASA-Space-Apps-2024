@@ -1,6 +1,18 @@
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'; // OrbitControls to move around with mouse
 import * as THREE from 'three';
 
+
+let celestialBodies = []; // To store celestial body data
+
+// Fetch celestial bodies data
+fetch('celestialBodies.json')
+    .then(response => response.json())
+    .then(data => {
+        celestialBodies = data; // Store the data in the global variable
+    })
+    .catch(error => console.error('Error fetching celestial bodies:', error));
+
+
 // Scene setup
 const scene = new THREE.Scene();
 
@@ -92,29 +104,44 @@ function updateSolarWindParticles(particleSystem, particlePositions, solarWindDa
     particleSystem.geometry.attributes.position.needsUpdate = true;  // Notify Three.js to update particles
 }
 
-// Main simulation function
+// Main solar wind simulation function
+let solarWindSimulationRunning = false; // Flag to track simulation state
+let particleSystem; // Declare the particleSystem variable globally
+let particlePositions; // Ensure this is defined in the right scope
+
 async function simulateSolarWind() {
+    if (solarWindSimulationRunning) return; // Prevent starting a new simulation if one is already running
+    solarWindSimulationRunning = true; // Set the flag to true
+
     let solarWindData = await fetchPlasmaData();
     console.log('Fetched Solar Wind Data:', solarWindData);
 
-    const { particleSystem, particlePositions, particleCount } = createSolarWindParticles(solarWindData);
-    console.log('Number of Particles:', particleCount); // Log to see how many particles are created
+    const particleData = createSolarWindParticles(solarWindData);
+    particleSystem = particleData.particleSystem; // Correct variable name
+    particlePositions = particleData.particlePositions; // Make sure to assign particle positions
+    console.log('Number of Particles:', particleData.particleCount); // Log to see how many particles are created
 
-    setInterval(async () => {
+    scene.add(particleSystem); // Add the particle system to the scene
+
+    const intervalId = setInterval(async () => {
         solarWindData = await fetchPlasmaData();
-        updateSolarWindParticles(particleSystem, particlePositions, solarWindData);  // Update visualization
-    }, 60000);  // 60 seconds
+        updateSolarWindParticles(particleSystem, particlePositions, solarWindData); // Update visualization
+    }, 60000); // 60 seconds
 
     // Animation loop
     function animate() {
-        requestAnimationFrame(animate);
-        updateSolarWindParticles(particleSystem, particlePositions, solarWindData);
-        renderer.render(scene, camera);
-    }
-    animate();
-}
+        if (!solarWindSimulationRunning) { // Check if the simulation should continue
+            clearInterval(intervalId); // Stop the interval when the simulation is not running
+            scene.remove(particleSystem); // Remove the particle system from the scene
+            return;
+        }
 
-simulateSolarWind();
+        requestAnimationFrame(animate); // Request the next frame
+        updateSolarWindParticles(particleSystem, particlePositions, solarWindData); // Update particles
+        renderer.render(scene, camera); // Render the scene
+    }
+    animate(); // Start the animation
+}
 
 // Stars
 function addStar() {
@@ -129,24 +156,6 @@ function addStar() {
 }
 Array(300).fill().forEach(addStar);
 
-// Create hitboxes for Sun, Earth, and Moon using cube geometries
-const sunHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(120, 120, 120),  // Adjust size as needed
-    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 }) // Red for visibility
-);
-scene.add(sunHitbox);
-
-const earthHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(60, 60, 60),  // Adjust size as needed
-    new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5 }) // Green for visibility
-);
-scene.add(earthHitbox);
-
-const moonHitbox = new THREE.Mesh(
-    new THREE.BoxGeometry(30, 30, 30),  // Adjust size as needed
-    new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5 }) // Blue for visibility
-);
-scene.add(moonHitbox);
 
 // Textures
 const moonTexture = new THREE.TextureLoader().load('moon.jpg');
@@ -175,6 +184,28 @@ const sun = new THREE.Mesh(
 scene.add(sun);
 console.log(moon.geometry.parameters.radius);
 
+// Create hitboxes for Sun, Earth, and Moon using cube geometries
+const sunHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(120, 120, 120),  // Adjust size as needed
+    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5, visible: false}) // Red for visibility
+);
+sunHitbox.name = "Sun";
+scene.add(sunHitbox);
+
+const earthHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(60, 60, 60),  // Adjust size as needed
+    new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.5, visible: false }) // Green for visibility
+);
+earthHitbox.name = "Earth";
+scene.add(earthHitbox);
+
+const moonHitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(30, 30, 30),  // Adjust size as needed
+    new THREE.MeshBasicMaterial({ color: 0x0000ff, transparent: true, opacity: 0.5, visible: false }) // Blue for visibility
+);
+moonHitbox.name = "Moon";
+scene.add(moonHitbox);
+
 // Orbital parameters
 let orbitRadius = 300; // Distance from the Sun to Earth
 let orbitRadius2 = 50; // Distance from Earth to Moon
@@ -189,41 +220,19 @@ const closeSidebarButton = document.getElementById('close-sidebar');
 
 // Sidebar content elements
 const planetName = document.getElementById('planet-name');
+const planetBlurb = document.getElementById('planet-blurb'); // Added blurb
 const planetDistance = document.getElementById('planet-distance');
 const planetOrbit = document.getElementById('planet-orbit');
+const planetDay = document.getElementById('planet-day'); // Added day length
 const planetTemperature = document.getElementById('planet-temperature');
+const planetDiameter = document.getElementById('planet-diameter'); // Added diameter
 const planetMoons = document.getElementById('planet-moons');
+const planetType = document.getElementById('planet-type'); // Added type of planet
+const planetRings = document.getElementById('planet-rings'); // Added rings
+const planetGravity = document.getElementById('planet-gravity'); // Added gravity
+const planetAtmosphere = document.getElementById('planet-atmosphere'); // Added atmosphere
 
-// Celestial bodies information with hitboxes
-const celestialBodies = [
-    {
-        name: "Sun",
-        distanceFromSun: 0,
-        orbitalPeriod: 0,
-        temperature: 5505,
-        moons: 0,
-        mesh: sun,
-        hitbox: sunHitbox
-    },
-    {
-        name: "Earth",
-        distanceFromSun: "149,600,000",
-        orbitalPeriod: 365,
-        temperature: 15,
-        moons: 1,
-        mesh: earth,
-        hitbox: earthHitbox
-    },
-    {
-        name: "Moon",
-        distanceFromSun: "384,400", // Distance from Earth
-        orbitalPeriod: 27,
-        temperature: -20,
-        moons: 0,
-        mesh: moon,
-        hitbox: moonHitbox
-    }
-];
+
 
 // Add hitboxes to the scene
 celestialBodies.forEach(body => {
@@ -243,15 +252,80 @@ function closeSidebar() {
 
 closeSidebarButton.addEventListener('click', closeSidebar);
 
+
 // Function to update sidebar with planet info
 function updateSidebar(body) {
-    planetName.textContent = body.name;
-    planetDistance.textContent = `Distance from Sun: ${body.distanceFromSun} km`;
-    planetOrbit.textContent = `Orbital Period: ${body.orbitalPeriod} days`;
-    planetTemperature.textContent = `Temperature: ${body.temperature} °C`;
-    planetMoons.textContent = `Moons: ${body.moons}`;
+    document.getElementById('planet-name').textContent = body.name;
+    
+    // Update the values for each field using textContent
+    document.getElementById('distance-value').textContent = `${body.distanceFromSun} km`;
+    document.getElementById('orbit-value').textContent = `${body.orbitalPeriod} days`;
+    document.getElementById("day-value").textContent = `${body.dayLength} hours`; // Added day length
+    document.getElementById('temperature-value').textContent = `${body.temperature} °C`;
+    document.getElementById('moons-value').textContent = `${body.moons}`;
+    document.getElementById('planet-blurb').textContent = body.blurb; // Added blurb
+    document.getElementById('diameter-value').textContent = `${body.diameter} km`; // Added diameter
+    document.getElementById('mass-value').textContent = `${body.mass} x 10²⁴ kg`; // Added mass
+    document.getElementById('type-value').textContent = body.typeOfPlanet; // Added type of planet
+    document.getElementById('rings-value').textContent = `${body.rings}`; // Added rings
+    document.getElementById('gravity-value').textContent = `${body.gravity} m/s²`; // Added gravity
+    document.getElementById('atmosphere-value').textContent = body.atmosphere; // Added atmosphere
+    
     openSidebar();
+    
 }
+
+// toggle buttons -------------------------------------------------------------------
+
+const orbitLinesCheckbox = document.getElementById('orbit-lines-checkbox');
+const planetNamesCheckbox = document.getElementById('planet-names-checkbox');
+const solarWindCheckbox = document.getElementById('solar-wind-checkbox');
+  
+orbitLinesCheckbox.addEventListener('change', function() {
+  if (orbitLinesCheckbox.checked) {
+      // condition to show orbit lines
+      console.log("Orbit lines checked");
+    } else {
+      // condition to hide orbit lines 
+      console.log("Orbit lines unchecked");
+    }
+}); 
+
+planetNamesCheckbox.addEventListener('change', function() {
+  if (planetNamesCheckbox.checked) {
+    // condition to show the planet names
+    console.log("Planet names checked");
+  } else {
+    // condition to hide the planet names 
+    console.log("Planet names unchecked");
+  }
+}); 
+
+// solarWindCheckbox.addEventListener('change', function() {
+//   if (solarWindCheckbox.checked) {
+//     // condition to show solar wind
+//     console.log("Solar wind checked");
+//     simulateSolarWind();
+
+//   } else {
+//     // condition to hide solar wind
+//     console.log("Solar wind unchecked");
+//   }
+// });
+
+solarWindCheckbox.addEventListener('change', function() {
+    if (solarWindCheckbox.checked) {
+        // Condition to show solar wind
+        console.log("Solar wind checked");
+        simulateSolarWind(); // Start the simulation
+    } else {
+        // Condition to hide solar wind
+        console.log("Solar wind unchecked");
+        solarWindSimulationRunning = false; // Set the flag to false
+    }
+});
+
+// toggle buttons -------------------------------------------------------------------
 
 // Raycaster for detecting clicks
 const raycaster = new THREE.Raycaster();
@@ -264,16 +338,19 @@ window.addEventListener('click', (event) => {
 
     raycaster.setFromCamera(mouse, camera);
 
-    // Create an array of hitboxes for intersection
-    const hitboxes = celestialBodies.map(body => body.hitbox);
-    
-    const intersects = raycaster.intersectObjects(hitboxes); // Check against the hitboxes
+    // Use hitboxes for intersection checking
+    const intersects = raycaster.intersectObjects([sunHitbox, earthHitbox, moonHitbox]); // Check against specific hitboxes
+    //console.log("TESTING:", hitboxes);
+    //const intersects = raycaster.intersectObjects(hitboxes);
+    //const intersects = raycaster.intersectObjects(scene.children); // Check against all scene children
+    console.log(intersects);
+    console.log(intersects[0].object.name);
+
 
     if (intersects.length > 0) {
         const clickedHitbox = intersects[0].object; // Get the clicked hitbox
-
-        // Find the corresponding celestial body based on the hitbox
-        const clickedBody = celestialBodies.find(body => body.hitbox === clickedHitbox);
+        const clickedBody = celestialBodies.find(body => body.name === clickedHitbox.name);
+        console.log(clickedBody);
         if (clickedBody) {
             updateSidebar(clickedBody);  // Show sidebar with clicked body's info
         }

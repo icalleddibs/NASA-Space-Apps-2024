@@ -35,7 +35,24 @@
         </div>
 
         <div id="orrery-content" class="tab-content" style="display: none;">
-            <canvas id="bg"></canvas> <!-- This is your three.js canvas -->
+          <div class="control-panel" id="control-panel"> 
+            <div class="control-item">
+
+                <label for="orbit-lines-checkbox" id="orbit-lines" style="font-weight: bold;">Orbit lines</label>
+                <input type="checkbox" id="orbit-lines-checkbox">
+            </div>
+            <div class="control-item">
+                <label for="planet-names-checkbox" id="planet-names" style="font-weight: bold;">Planet names</label>
+                <input type="checkbox" id="planet-names-checkbox">
+            </div>
+            <div class="control-item">
+                 <label for="solar-wind-checkbox" id="solar-wind" style="font-weight: bold;">Solar wind</label>
+                <input type="checkbox" id="solar-wind-checkbox">
+            </div>
+          </div>
+
+          <canvas id="bg"></canvas> <!-- This is your three.js canvas -->
+            
         </div>
 
         <div id="earth-content" class="tab-content" style="display: none;">
@@ -53,10 +70,18 @@
     <div class="right-sidebar" id="right-sidebar">
         <div class="sidebar-content">
             <h2 id="planet-name">Planet Info</h2>
-            <p id="planet-distance"><strong>Distance from Sun:</strong></p>
-            <p id="planet-orbit"><strong>Orbital Period:</strong></p>
-            <p id="planet-temperature"><strong>Temperature:</strong></p>
-            <p id="planet-moons"><strong>Moons:</strong></p>
+            <p id="planet-blurb"></p>
+            <p id="planet-distance"><strong>Distance from Sun:</strong> <span id="distance-value"></span></p>
+            <p id="planet-orbit"><strong>Orbital Period:</strong> <span id="orbit-value"></span></p>
+            <p id="day-length"><strong>Day Length:</strong> <span id="day-value"></span></p>
+            <p id="planet-temperature"><strong>Average Temperature:</strong> <span id="temperature-value"></span></p>
+            <p id="planet-moons"><strong>Number of Moons:</strong> <span id="moons-value"></span></p>
+            <p id="planet-diameter"><strong>Diameter:</strong> <span id="diameter-value"></span></p>
+            <p id="planet-mass"><strong>Mass:</strong> <span id="mass-value"></span></p>
+            <p id="planet-type"><strong>Type:</strong> <span id="type-value"></span></p>
+            <p id="planet-rings"><strong>Ring System:</strong> <span id="rings-value"></span></p>
+            <p id="planet-gravity"><strong>Gravity:</strong> <span id="gravity-value"></span></p>
+            <p id="planet-atmosphere"><strong>Atmosphere:</strong> <span id="atmosphere-value"></span></p>
             <button id="close-sidebar">Close</button>
         </div>
     </div>
