@@ -27,7 +27,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;  // You can use other types to
 scene.background = new THREE.Color(0x000000);
 
 // Lighting
-const pointLight = new THREE.PointLight(0xffffff, 1);  // Lower intensity
+const pointLight = new THREE.PointLight(0xffffff, 20000);  // Lower intensity
 pointLight.position.set(0, 0, 0);
 pointLight.castShadow = true;  // Enable shadow casting for the light
 pointLight.shadow.mapSize.width = 2048;  // Adjust for higher quality shadows
@@ -46,7 +46,7 @@ const planetTexture = new THREE.TextureLoader().load(`textures/earth.jpg`);
 const earth_radius = 100;
 const earth = new THREE.Mesh(
   new THREE.SphereGeometry(earth_radius, 32, 32),
-  new THREE.MeshStandardMaterial({map: planetTexture})
+  new THREE.MeshStandardMaterial({emissive: 0xfe9eff9,emissiveIntensity : 0.05, map: planetTexture})
 );
 earth.position.set(0, 0, 0);  // Center Earth at (0, 0, 0)
 // Apply axial tilt (23.5 degrees)
@@ -73,11 +73,20 @@ scene.add(earth);
 const now = new Date();
 
 
-function createSatelliteMesh(size = 2, color=0xdef2ff ) {
-  const satelliteGeometry = new THREE.SphereGeometry(size, 16, 16); // Create a small sphere for the satellite
-  const satelliteMaterial = new THREE.MeshStandardMaterial({ color: color }); // Red color for visibility
-  const satelliteMesh = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
-  return satelliteMesh;
+function createSatelliteMesh(size = 5, color=0xdef2ff ) {
+  const satelliteMaterial = new THREE.PointsMaterial({
+    color: color,
+    size: size,
+    sizeAttenuation: true
+  });
+  
+  // Create BufferGeometry with a single vertex (x, y, z)
+  const satelliteGeometry = new THREE.BufferGeometry();
+  const vertices = new Float32Array(3);  // Initially at the origin
+  satelliteGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+  let satMesh = new THREE.Points(satelliteGeometry, satelliteMaterial);
+  return satMesh;
 }
 
 // Example URL for active satellites TLE data
@@ -89,7 +98,7 @@ const tleURL = "celestrak_active.txt";
 let satelliteMeshes = [];
 let filteredSatellites = [];
 const leo = true;
-const meo = false;
+const meo = true;
 const geo = false;
 const iss = true;
 
@@ -127,7 +136,7 @@ fetchTLEData(tleURL).then(tleData => {
 
 // Animate the scene
 let sim_time = 0;
-let realtime = true;
+let realtime = false;
 let dt;  // Declare dt here, outside the blocks
 if (realtime==true) {
     dt = 1/60 *1000;
