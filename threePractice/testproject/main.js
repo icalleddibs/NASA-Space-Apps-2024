@@ -108,7 +108,7 @@ let non_hazardousAsteroids = [];
 function createPlanetTag(planetName) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    context.font = '30px Arial';
+    context.font = '50px Arial';
     context.fillStyle = 'white';
     context.fillText(planetName, 10, 40);
   
@@ -121,6 +121,7 @@ function createPlanetTag(planetName) {
   }
 
 const planetMap = new Map();
+const asteroidsMap = new Map();
 //creating planets
 const tagsMap = new Map(); // Initialize a new map to store planet tags
 
@@ -570,32 +571,30 @@ solarWindCheckbox.addEventListener('change', function() {
 
 
 hazardousCheckbox.addEventListener('change', function() {
-    if (hazardousCheckbox.checked) {
-      hazardousAsteroids.forEach(asteroid => {
-          asteroid.visible = true; 
-      });
-      console.log("hazardous asteroids checked");
-  } else {
-      hazardousAsteroids.forEach(asteroid => {
-        asteroid.visible = false; 
-      });
-      console.log("hazardous asteroids unchecked");
-  }
-  });
+    const isChecked = hazardousCheckbox.checked; // Get the state of the checkbox
+
+    // Iterate through the `asteroidsMap` and toggle visibility based on the checkbox state
+    asteroidsMap.forEach((asteroid, asteroidName) => {
+        if (asteroid.userData.isHazardous) { // Assuming you have a property to differentiate hazardous asteroids
+            asteroid.visible = isChecked; // Show/hide the asteroid based on the checkbox
+        }
+    });
+    
+    console.log(`Hazardous asteroids ${isChecked ? 'visible' : 'hidden'}`);
+});
   
-  nonHazardousCheckbox.addEventListener('change', function() {
-    if (hazardousCheckbox.checked) {
-      non_hazardousAsteroids.forEach(asteroid => {
-          asteroid.visible = true; 
-      });
-      console.log("non-hazardous asteroids checked");
-  } else {
-      non_hazardousAsteroids.forEach(asteroid => {
-        asteroid.visible = false; 
-      });
-      console.log("non-hazardous asteroids unchecked");
-  }
-  });
+nonHazardousCheckbox.addEventListener('change', function() {
+    const isChecked = nonHazardousCheckbox.checked; // Get the state of the checkbox
+
+    // Iterate through the `asteroidsMap` and toggle visibility for non-hazardous asteroids
+    asteroidsMap.forEach((asteroid, asteroidName) => {
+        if (!asteroid.userData.isHazardous) { // If asteroid is non-hazardous
+            asteroid.visible = isChecked; // Show/hide the asteroid based on the checkbox
+        }
+    });
+
+    console.log(`Non-hazardous asteroids ${isChecked ? 'visible' : 'hidden'}`);
+});
 
 // raycaster -------------------------------------------------------------------
 
@@ -720,19 +719,23 @@ function animate() {
     });
 
     asteroids.forEach(asteroidData => {
-        const asteroid = scene.getObjectByName(asteroidData.full_name);
+        const asteroid = scene.getObjectByName(asteroidData.full_name); // Make sure the asteroid is named correctly
         if (asteroid) {
-          const asteroidParams = createAsteroidOrbitParams(asteroidData);
-          const adjustedSimTime = sim_time; // Use simulation time directly or apply a speed factor if necessary
+            const asteroidParams = createAsteroidOrbitParams(asteroidData);
+            const adjustedSimTime = sim_time; // Use simulation time directly or apply a speed factor if necessary
     
-          const { X, Y, Z } = getOrbitPosition(
-            asteroidParams.a, asteroidParams.e, asteroidParams.I,
-            asteroidParams.L, asteroidParams.w, asteroidParams.omega, adjustedSimTime, asteroidParams.T
-          );
-          
-          asteroid.position.set(X, Y, Z); // Update asteroid position
+            const { X, Y, Z } = getOrbitPosition(
+                asteroidParams.a, asteroidParams.e, asteroidParams.I,
+                asteroidParams.L, asteroidParams.w, asteroidParams.omega, adjustedSimTime, asteroidParams.T
+            );
+    
+            asteroid.position.set(X, Y, Z); // Update asteroid position
+            
+            // Corrected: Store the asteroid in a Map with its full_name as the key
+            asteroidsMap.set(asteroidData.full_name, asteroid);
         }
-      });
+    });
+    
 
     // Update time (you can make it move backward/forward based on user input)
     sim_time += dt;

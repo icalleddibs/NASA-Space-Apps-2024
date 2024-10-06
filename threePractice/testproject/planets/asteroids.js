@@ -6,8 +6,7 @@ const SECONDS_IN_YEAR = 365.25 * 24 * 3600;
 
 // Function to extract asteroid orbit parameters from the parsed data
 function createAsteroidOrbitParams(asteroidData) {
-    //console.log('Asteroid Data Keys:', Object.keys(asteroidData)); // Debugging statement
-
+    // Convert semi-major axis (a) from AU to scene units
     const a = parseFloat(asteroidData["a [au]"]) * 400; // Convert AU to scene units
     const periodInYears = parseFloat(asteroidData["per_y"]); // Orbital period in Earth years
 
@@ -29,6 +28,7 @@ function createAsteroidOrbitParams(asteroidData) {
 function createAndPlotAsteroid(asteroidData, scene) {
     const asteroidParams = createAsteroidOrbitParams(asteroidData);
     console.log('Asteroid Params:', asteroidParams); // Debugging statement
+
     // If asteroidParams is invalid, return early
     if (!asteroidParams) {
         console.error('Invalid asteroid params:', asteroidData);
@@ -48,14 +48,14 @@ function createAndPlotAsteroid(asteroidData, scene) {
 
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute([X, Y, Z], 3));
-    let ast_color = 0xffffff;
 
-    if (asteroidParams.pha == "Y") {
+    let ast_color = 0xffffff;
+    if (asteroidParams.pha === "Y") {
         console.log('Potentially hazardous asteroid:', asteroidParams.full_name);
-        ast_color= 0xff0000
-    } else if (asteroidParams.pha == "N") {
+        ast_color = 0xff0000; // Red for hazardous asteroids
+    } else if (asteroidParams.pha === "N") {
         console.log('Safe asteroid:', asteroidParams.full_name);
-        ast_color = 0xffffff;
+        ast_color = 0xffffff; // White for non-hazardous asteroids
     }
 
     const material = new THREE.PointsMaterial({
@@ -66,7 +66,15 @@ function createAndPlotAsteroid(asteroidData, scene) {
 
     const asteroidPoint = new THREE.Points(geometry, material);
     asteroidPoint.name = asteroidData.full_name;  // Ensure the asteroid has a unique name
+
+    // Add user data to the asteroid to help with toggling
+    asteroidPoint.userData.isHazardous = asteroidParams.pha === "Y"; // Store hazardous flag in userData
+
+    // Add the asteroid to the scene
     scene.add(asteroidPoint);
+
+    // Return the asteroidPoint so it can be added to the asteroidsMap
+    return asteroidPoint;
 }
 
 export { createAndPlotAsteroid, createAsteroidOrbitParams };
