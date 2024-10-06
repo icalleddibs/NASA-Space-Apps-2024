@@ -10,7 +10,7 @@ let planetDataArray = [];
 const scene = new THREE.Scene();
 
 // Camera setup
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
 camera.position.setZ(500);
 
 // Renderer setup
@@ -64,8 +64,7 @@ async function loadPlanetData() {
           throw new Error('Network response was not ok');
       }
       const csvData = await response.text();
-      const parsedData = Papa.parse(csvData, { header: true }).data; // Parses the CSV into an array of objects
-      console.log('Loaded planet data:', planetDataArray);
+      const parsedData = Papa.parse(csvData, { header: true, skipEmptyLines: true }).data; // Parses the CSV into an array of objects
       return parsedData; // Return the parsed planet data
   } catch (error) {
       console.error('Error fetching or parsing planet data:', error);
@@ -75,21 +74,23 @@ async function loadPlanetData() {
 //creating planets
 async function createPlanets(scene) {
   planetDataArray = await loadPlanetData(); // Load the CSV data
+  console.log('Loaded planet data:', planetDataArray);
 
   planetDataArray.forEach(planetData => {
       // Generate orbital parameters
       const orbitParams = createOrbitParams(planetData);
+      console.warn(planetData);
+      console.warn(orbitParams);
 
       // Create planet mesh (you may want to adjust sizes for each planet)
-      const planetTexture = new THREE.TextureLoader().load(`${planetData.Planet.toLowerCase()}.jpg`);
+      const planetTexture = new THREE.TextureLoader().load(`textures/${planetData.Planet.toLowerCase()}.jpg`);
       const planet = new THREE.Mesh(
-          new THREE.SphereGeometry(10, 32, 32), // Adjust size
+          new THREE.SphereGeometry(30, 32, 32), // Adjust size
           new THREE.MeshStandardMaterial({ map: planetTexture })
       );
-      if (planetData.Planet === 'EM Bary') {
-          planetData.Planet = 'Earth'; // Set the Earth object's name
-      }
+
       planet.name = planetData.Planet;
+      console.warn(planet.name);
       // Create orbit for the planet
       const orbit = createOrbit(
           orbitParams.a,
@@ -116,7 +117,7 @@ async function createPlanets(scene) {
 // Call the createPlanets function when setting up the scene
 createPlanets(scene);
 
-
+/*
 function addReferencePlane(scene) {
   const planeGeometry = new THREE.PlaneGeometry(10000, 10000);
   const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x808080, side: THREE.DoubleSide, opacity: 0.01, transparent: true });
@@ -127,7 +128,7 @@ function addReferencePlane(scene) {
   scene.add(referencePlane);
 }
 addReferencePlane(scene);
-
+*/
 
 // Create the Moon sphere
 const moon = new THREE.Mesh(
@@ -142,6 +143,7 @@ scene.add(moon);
 // Create the Sun sphere
 // sun
 // corona simulation found from: https://github.com/bobbyroe/solar-system/blob/main/src/getSun.js
+const sun_radius = 50;
 function getCorona(radiation) {
   const radius = 51;
   const material = new THREE.MeshBasicMaterial({
@@ -176,7 +178,7 @@ function getCorona(radiation) {
 
 
 const sun = new THREE.Mesh(
-  new THREE.SphereGeometry(50, 32, 32),
+  new THREE.SphereGeometry(sun_radius, 32, 32),
   new THREE.MeshStandardMaterial({emissive: 0xff0000, map: sunTexture })
 );
 let radiation = 5
@@ -190,7 +192,7 @@ let moonangle = 0;
 let moonspeed = 0.03;
 
 // Animate the scene
-let time = 0;
+let sim_time = 0;
 let dt = 60 * 60; // 1 hour timestep
   
 function animate() {
@@ -208,7 +210,7 @@ function animate() {
           // Update the planet's position at the current time
           const { X, Y, Z } = getOrbitPosition(
               orbitParams.a, orbitParams.e, orbitParams.I,
-              orbitParams.L, orbitParams.w, orbitParams.omega, time, orbitParams.T
+              orbitParams.L, orbitParams.w, orbitParams.omega, sim_time, orbitParams.T
           );
           planet.position.set(X, Y, Z);
       } else {
@@ -218,10 +220,10 @@ function animate() {
   
 
   // Update time (you can make it move backward/forward based on user input)
-  time += dt;
+  sim_time += dt;
 
   // Moon orbital motion around Earth
-  const earth = scene.getObjectByName('Earth'); // Assuming you named the Earth object
+  const earth = scene.getObjectByName('Earth');
   if (earth) {
       const X = earth.position.x;
       const Y = earth.position.y;

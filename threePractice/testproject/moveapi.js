@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 //COORDINATES:
 function createOrbitParams(planetData) {
+  //console.warn(planetData["long.node.  [deg]"]);
+  //console.log(Object.keys(planetData));
     return {
-        a: planetData.a * 400, // Convert AU to scene units
-        e: planetData.e,
-        I: parseFloat(planetData.I),
-        L: parseFloat(planetData.L),
-        w: parseFloat(planetData["long.peri."]),
-        omega: parseFloat(planetData["long.node."]),
+        a: parseFloat(planetData["a [au]"]) * 400, // Convert AU to scene units
+        e: parseFloat(planetData["e [rad]"]),      // Access 'e [rad]' correctly
+        I: parseFloat(planetData["I [deg]"]),      // Access 'I [deg]'
+        L: parseFloat(planetData["L [deg]"]),      // Access 'L [deg]'
+        w: parseFloat(planetData["long.peri.  [deg]"]), // Access 'long.peri. [deg]'
+        omega: parseFloat(planetData["long.node.  [deg]"]), // Access 'long.node. [deg]'
         T: 365.25 * 24 * 3600 // Approximate year (can be adjusted per planet)
     };
 }
