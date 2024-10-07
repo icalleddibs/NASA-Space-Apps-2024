@@ -26,35 +26,31 @@
     <!-- Main Content -->
     <div class="main-content">
         <div id="home-content" class="tab-content homepage-background" style="display: block;">
-            <div id="image-section" style="position: relative; text-align: center;">
-                <img src="/images/homepage-bg.png" style="max-width: 100%;">
-                
-                <!-- Text Over the Image -->
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
-                    <h1 style="font-size: 100px;">NAME OF PRODUCT</h1>
-                    <p style="font-size: 30px;">This is some tagline or description.</p>
-                </div>
+            <div id="image-section" class="centered-image-section">
+              <img src="/images/backgd.jpg" alt="Background Image">
+              
+              <!-- Text Over the Image -->
+              <div class="centered-block">
+                <h1>OrbitWatch</h1>
+                <p style="font-size: 25px; font-style: italic;">A Guide to Space Exploration: Real Data, Real Impact.</p>
+              </div>
             </div>
-            
+          
             <!-- New Scrollable Section -->
-            <div id="scrollable-section">
-                <div class="mission-statement" style="margin-left: 20px;">
-                    <h2>Mission Statement</h2>
-                </div>
-                <div class="scrollable-content">
-                    <p>This section is below the homepage content. You can add more information, images, or anything else you want.</p>
-                    <p>More text to make this section longer. This will demonstrate scrolling behavior when the content exceeds the viewport height.</p>
-                    <p>Keep adding content here to create a scrollable effect!</p>
-                    <p>More content...</p>
-                    <p>More content...</p>
-                    <p>More content...</p>
-                    <p>More content...</p>
-                    <p>More content...</p>
-                    <p>More content...</p>
-                    <p>More content...</p>
-                </div>
+            <div id="scrollable-section" style="background-color: #5f3b77; padding: 20px;">
+              
+              <div class="scrollable-content">
+                <h2 style="color: white; font-size: 35px">Mission Statement</h2>
+                <p style="color: white;">Inspired by the theme of heliophysics, our team has developed an interactive web-based orrery to educate future aerospace designers on what we believe will be the most pressing issues in space exploration. Here we introduce a visualization tool for the combined effects of solar and asteroid events on Earth and its satellites.</p>
+                <p style="color: white;">Looking through the available educational resources, we realized few tools allowed the learner to visualize multiple events in the solar system simultaneously. Moreover, with the rise of low-earth objects in the past decade, knowledge of system-level interactions became an essential part of mission success for many young/university-level teams developing CubeSats. We plan to develop our tool further so that it can be used as an accurate predictor of solar activity and interactions to help support the health of the currently deployed and future satellites.</p>
+                <p style="color: white;">The goal of this project is to act as an educational and visualization tool for school-aged audiences, to teach about the interconnectedness between Earth and a number of fundamental space events that impact its orbital environment. It is primarily designed to give perspective about the many astronomical events occurring around us every day.</p>
+
+                <h2 style="color: white; font-size: 35px">Functionality</h2>
+                <p style="color: white;">The website features two dynamic 3D-modeled pages to display our entire solar system (showcasing solar flares, solar wind, and NEO asteroids) and a closer look at the Earth and its surrounding man-made satellites. On each of the pages, additional information can be accessed by interacting with objects on screen, including information about each of the planets in a sidebar when clicked on. All of the planetary and asteroid movements follow the Keplerian orbital parameters from NASA. The Earth close-up includes live satellite tracking with real-time animation using open-source data from the non-profit Celestrak.</p>
+
+              </div>
             </div>
-        </div>
+          </div>
 
         <div id="resources-content" class="tab-content" style="display: none;">
             <h2>Resources</h2>

@@ -50,7 +50,7 @@ body {
 }
 
 /* Main content styling */
-.main-content {
+#main-content {
     margin-top: 0px;
     margin-left: 250px;
     padding: 20px;
@@ -167,7 +167,7 @@ input[type="checkbox"] {
     position: fixed; /* Fixes the image at the top */
     top: 0; /* Aligns to the top */
     left: 0; /* Aligns to the left */
-    width: 100vw; /* Full width */
+    width: auto; /* Full width */
     height: auto; /* Allows height to be automatic */
     z-index: -1; /* Ensures it's behind other content */
     
@@ -192,30 +192,45 @@ input[type="checkbox"] {
 
 
 #scrollable-section {
-    padding: 20px; /* Space inside the section */
-    background-color: #654787; /* Light background with some transparency */
-    width: 100%; /* Full width */
-    margin-top: -150px; /* Adjusts it to overlap the purple section */
-    padding: 0px 0px 0px 200px; /* Adds space inside the section */
+    padding: 20px 100px; /* Space inside the section */
+    background-color: rgba(101, 71, 135, 0.8);
+    width: calc(100vw - 250px); /* Full width */
+    margin-top: 22%; /* Adjusts it to overlap the purple section */
+    margin-left: 250px; /* Align to the right of the sidebar */
+    padding-top: 100px; /* Adjusts for the fixed header */
+    box-sizing: border-box;
     position: relative; /* Ensures proper stacking context */
     z-index: 1; /* Keep it above the background */
+    overflow-x: hidden; /* Hides horizontal overflow */
 }
 
 .scrollable-content {
-    flex: 1; /* Allows this section to grow */
-    overflow-y: auto; /* Enables vertical scrolling if needed */
-    width: 1000px; /* Full width */
-    padding: 20px;
-    max-height: 60vh; /* Sets a max height for scrolling behavior */
-    color: white; /* Text color */
+    overflow-y: hidden;
+    font-size: 18px;
+    padding: 20px 80px;
+    width: 100%;
+    color: white;
+    box-sizing: border-box;
 }
 
-.mission-statement {
-    text-align: right; /* Aligns text to the right */
-    font-size: 30px; /* Sets font size */
-    padding: 0px 450px; /* Adjust padding for aesthetics */
-    margin-top: -140px; /* Adjusts vertical positioning */
+.centered-image-section {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 500px; /* Set height of the image section */
+    background-image: url('/images/backgd.jpg');
+    background-size: cover;
+    background-position: center;
     color: white; /* Text color */
-    float: right; /* Aligns the box to the right */
-    white-space: nowrap; /* Prevents text from wrapping */
-}
+  }
+  
+  .centered-block h1 {
+    font-size: 100px;
+    margin: 0;
+  }
+  
+  .centered-block p {
+    font-size: 30px;
+    margin: 10px 0;
+  }
