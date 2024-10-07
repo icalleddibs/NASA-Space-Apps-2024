@@ -12,8 +12,8 @@
 <body>
     <!-- Left Sidebar Navigation -->
     <div class="sidebar" id="sidebar">
-        <img src="/images/logo.png" style="width: 100%; height: auto;">
-        <h2>Orrery WebApp</h2>
+        <img src="/images/logo.png" style="width: 50%; height: auto; margin: 0 20px 0 0; padding: 0;">
+        <h2 style="text-align: left; padding: 0px 10px">OrbitWatch</h2>
         <ul>
             <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
             <li><a href="#orrery" onclick="navigateTo('orrery')">Orrery</a></li>
@@ -65,23 +65,23 @@
           <div class="control-panel" id="orrery-control-panel"> <!-- Changed ID for clarity -->
             <div class="control-item">
                 <label for="orbit-lines-checkbox" id="orbit-lines" style="font-weight: bold;">Orbit lines</label>
-                <input type="checkbox" id="orbit-lines-checkbox" checked>
+                <input type="checkbox" id="orbit-lines-checkbox" style="accent-color: #caba3f" checked>
             </div>
             <div class="control-item">
                 <label for="planet-names-checkbox" id="planet-names" style="font-weight: bold;">Planet names</label>
-                <input type="checkbox" id="planet-names-checkbox" checked>
+                <input type="checkbox" id="planet-names-checkbox" style="accent-color: #4974a0" checked>
             </div>
             <div class="control-item">
                  <label for="solar-wind-checkbox" id="solar-wind" style="font-weight: bold;">Solar wind</label>
-                <input type="checkbox" id="solar-wind-checkbox">
+                <input type="checkbox" id="solar-wind-checkbox" style="accent-color: #13ee21" >
             </div>
             <div class="control-item">
                 <label for="hazardous-checkbox" id="hazardous" style="font-weight: bold;">Hazardous Asteroids</label>
-               <input type="checkbox" id="hazardous-checkbox" checked>
+               <input type="checkbox" id="hazardous-checkbox" style="accent-color: #FF0000" checked>
            </div>
             <div class="control-item">
                 <label for="non-hazardous-checkbox" id="non-hazardous" style="font-weight: bold;">Non-Hazardous Asteroids</label>
-                <input type="checkbox" id="non-hazardous-checkbox" checked>
+                <input type="checkbox" id="non-hazardous-checkbox" style="accent-color: #a09e9e" checked>
             </div>
             <div class="control-item">
               <button id="reset-camera">Reset Camera View</button>
