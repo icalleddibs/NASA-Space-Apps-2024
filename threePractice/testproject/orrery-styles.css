@@ -272,3 +272,11 @@ input[type="checkbox"] {
     color: white; /* Text color */
     text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5); /* Black shadow with blur */
 }
+
+
+.sidebar-image {
+    width: 150px; /* Set a fixed width */
+    height: auto; /* Automatically adjust height to maintain aspect ratio */
+    display: block;
+    margin: 0 auto 20px; /* Center the image and add space below */
+}
