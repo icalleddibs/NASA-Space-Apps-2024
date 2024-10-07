@@ -85,8 +85,8 @@ body {
 /* Button styling */
 button {
     font-family: 'Poppins', sans-serif;
-    padding: 15px 25px;
-    font-size: 18px;
+    padding: 10px 20px;
+    font-size: 15px;
     background-color: #4974a0;
     color: white;
     border: none;
@@ -108,16 +108,23 @@ button:hover {
     right: -420px; /* Completely off screen, adjust to be wider than the sidebar */
     top: 0;
     padding: 20px;
+    padding-bottom: 60px;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
     transition: right 0.3s ease-in-out;
+    overflow-y: auto;
+}
+
+.sidebar-content {
+    padding-bottom: 80px; /* Extra space below the content */
 }
 
 .sidebar-content h2 {
-    margin-bottom: 15px;
+    margin-bottom: 55px;
 }
 
 .sidebar-content p {
     margin: 10px 0;
+    
 }
 
 /* Show the sidebar when active */
@@ -234,3 +241,34 @@ input[type="checkbox"] {
     font-size: 30px;
     margin: 10px 0;
   }
+
+
+  #resource-section {
+    padding: 10px 50px; /* Space inside the section */
+    background-image: url('/images/backgd.jpg');
+    width: calc(100vw - 250px); /* Full width */
+    margin-left: 250px; /* Align to the right of the sidebar */
+    padding-top: 100px; /* Adjusts for the fixed header */
+    box-sizing: border-box;
+    position: relative; /* Ensures proper stacking context */
+    z-index: 1; /* Keep it above the background */
+    overflow-x: hidden; /* Hides horizontal overflow */
+}
+
+.new-div {
+    padding: 20px;
+    background-color: #4d396e;
+    color: white;
+    margin-top: 0px;
+    margin-left: 70px;
+    margin-right: 90px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    border-radius: 15px;
+}
+
+.shadow-text {
+    font-size: 30px; /* Adjust font size */
+    color: white; /* Text color */
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5); /* Black shadow with blur */
+}

@@ -16,10 +16,10 @@
         <h2 style="text-align: left; padding: 0px 10px">OrbitWatch</h2>
         <ul>
             <li><a href="#home" onclick="navigateTo('home')">Home</a></li>
-            <li><a href="#orrery" onclick="navigateTo('orrery')">Orrery</a></li>
-            <li><a href="#earth-view" onclick="navigateTo('earth')">Zoomed Earth</a></li>
+            <li><a href="#orrery" onclick="navigateTo('orrery')">Solar Orrery</a></li>
+            <li><a href="#earth-view" onclick="navigateTo('earth')">Earth Orrery</a></li>
             <li><a href="#resources" onclick="navigateTo('resources')">Resources</a></li>
-            <li><a href="#about" onclick="navigateTo('about')">About</a></li>
+            <li><a href="#about" onclick="navigateTo('about')">About OrbitWatch</a></li>
         </ul>
     </div>
 
@@ -40,12 +40,12 @@
             <div id="scrollable-section" style="background-color: #5f3b77; padding: 20px;">
               
               <div class="scrollable-content">
-                <h2 style="color: white; font-size: 35px">Mission Statement</h2>
+                <h2 class="shadow-text" style="color: white; font-size: 35px">Mission Statement</h2>
                 <p style="color: white;">Inspired by the theme of heliophysics, our team has developed an interactive web-based orrery to educate future aerospace designers on what we believe will be the most pressing issues in space exploration. Here we introduce a visualization tool for the combined effects of solar and asteroid events on Earth and its satellites.</p>
                 <p style="color: white;">Looking through the available educational resources, we realized few tools allowed the learner to visualize multiple events in the solar system simultaneously. Moreover, with the rise of low-earth objects in the past decade, knowledge of system-level interactions became an essential part of mission success for many young/university-level teams developing CubeSats. We plan to develop our tool further so that it can be used as an accurate predictor of solar activity and interactions to help support the health of the currently deployed and future satellites.</p>
                 <p style="color: white;">The goal of this project is to act as an educational and visualization tool for school-aged audiences, to teach about the interconnectedness between Earth and a number of fundamental space events that impact its orbital environment. It is primarily designed to give perspective about the many astronomical events occurring around us every day.</p>
 
-                <h2 style="color: white; font-size: 35px">Functionality</h2>
+                <h2 class="shadow-text" style="color: white; font-size: 35px">Functionality</h2>
                 <p style="color: white;">The website features two dynamic 3D-modeled pages to display our entire solar system (showcasing solar flares, solar wind, and NEO asteroids) and a closer look at the Earth and its surrounding man-made satellites. On each of the pages, additional information can be accessed by interacting with objects on screen, including information about each of the planets in a sidebar when clicked on. All of the planetary and asteroid movements follow the Keplerian orbital parameters from NASA. The Earth close-up includes live satellite tracking with real-time animation using open-source data from the non-profit Celestrak.</p>
 
               </div>
@@ -53,8 +53,47 @@
           </div>
 
         <div id="resources-content" class="tab-content" style="display: none;">
-            <h2>Resources</h2>
-            <p>Information about resources can be displayed here.</p>
+
+            <div id="resource-section" style="background-color: #5f3b77; padding: 20px;">
+              
+                <div class="scrollable-content">
+                    <h1 style="font-size: 50px;">Resources</h1>
+                    <p style="font-size: 22px; font-style: italic;">As part of the <a href="https://www.spaceappschallenge.org/" style="color: rgb(211, 177, 241);">NASA Space Apps Challenge 2024</a>, we utilized open space agency data to create our orrery. The following are datasets and resources we used.</p>
+                </div>
+                <div class="new-div">
+                    <h3><a href="https://ssd.jpl.nasa.gov/planets/approx_pos.html" style="color: rgb(211, 177, 241);">Approximate Positions of the Planet</a></h3>
+                    <p>For modelling the planets</p>
+                </div>
+                <p> </p>
+                <div class="new-div">
+                    <h3><a href="https://celestrak.org/NORAD/elements/index.php?FORMAT=csv" style="color: rgb(211, 177, 241);">NORAD GP Element Sets Current Data</a></h3>
+                    <p>For modelling the satellites</p>
+                </div>
+                <p> </p>
+                <div class="new-div">
+                    <h3><a href="https://www.solarsystemscope.com/textures/" style="color: rgb(211, 177, 241);">Solar Textures</a></h3>
+                    <p>For planet textures</p>
+                </div>
+                <p> </p>
+                <div class="new-div">
+                    <h3><a href="https://github.com/bobbyroe/solar-system?tab=MIT-1-ov-file" style="color: rgb(211, 177, 241);">Corona noise</a></h3>
+                    <p>For corona animation</p>
+                </div>
+                <p> </p>
+                <div class="new-div">
+                    <h3><a href="https://github.com/shashwatak/satellite-js" style="color: rgb(211, 177, 241);">Satellite JS</a></h3>
+                    <p>For satellite parsing</p>
+                </div>
+                <p> </p>
+                <div class="new-div">
+                    <h3><a href="https://www.swpc.noaa.gov/products/real-time-solar-wind" style="color: rgb(211, 177, 241);">Real Time Solar Wind</a></h3>
+                    <p>For live solar wind data</p>
+                </div>
+                <p> </p>
+                <div class="new-div">
+                    <h3><a href="https://ssd.jpl.nasa.gov/tools/sbdb_query.html#!#results" style="color: rgb(211, 177, 241);">Small-Body Database Query</a></h3>
+                    <p>For asteroid data</p>
+            </div>
         </div>
 
         <div id="orrery-content" class="tab-content" style="display: none;">
@@ -121,7 +160,7 @@
     <!-- Right Sidebar for Planet Info -->
     <div class="right-sidebar" id="right-sidebar">
         <div class="sidebar-content">
-            <h2 id="planet-name">Planet Info</h2>
+            <h2 id="planet-name" style="font-size: 30px; text-decoration: underline; margin-bottom: 20px;">Planet Info</h2>
             <p id="planet-blurb"></p>
             <p id="planet-distance"><strong>Distance from Sun:</strong> <span id="distance-value"></span></p>
             <p id="planet-orbit"><strong>Orbital Period:</strong> <span id="orbit-value"></span></p>
@@ -135,6 +174,7 @@
             <p id="planet-gravity"><strong>Gravity:</strong> <span id="gravity-value"></span></p>
             <p id="planet-atmosphere"><strong>Atmosphere:</strong> <span id="atmosphere-value"></span></p>
             <button id="close-sidebar">Close</button>
+            <p> </p>
         </div>
     </div>
 
