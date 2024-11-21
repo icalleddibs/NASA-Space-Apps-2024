@@ -1,8 +1,12 @@
 # NASA Space Apps Challenge 2024
 NASA Space Apps Challenge 2024 project developed by [Zenith 2024 Fellows](https://www.zenithpathways.ca/zenith-fellowship-class-of-2024).
+
 ⭐ Toronto Local Event Winner
+
 ⭐ Global Nominee 2024
+
 ⭐ [Live WebApp Prototype](https://orbitwatch.netlify.app/)
+
 ⭐ [Project Submission](https://www.spaceappschallenge.org/nasa-space-apps-2024/find-a-team/zenithcrew/?tab=project)
 
 ## Description
